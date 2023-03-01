@@ -1,0 +1,35 @@
+<a class="shopping-car-bar" href="/cart">
+    <div class="shopping-car-bar-icon">
+        <img class="img-responsive" src="{{ 'icon-cart-icon.svg'  | asset_url }}" alt=""/>
+    </div>
+    <div class="shopping-car-bar-info visible-md visible-lg">
+        <div class="shopping-car-bar-items">
+            ({{ cart.item_count }})
+            {{ cart.item_count | pluralize: 'Artículo', 'Artículos' }}
+        </div>
+        <div class="shopping-car-bar-price">
+            {{ cart.total_price | money }}
+        </div>
+    </div>
+</a>
+
+{% if shop.customer_accounts_enabled %}
+      <div class="shopping-car-bar login">
+        {% if customer %}          
+	        {% if customer.first_name != blank %}
+        	   <a href="/account">{{ customer.first_name }}</a>
+        	{% else %}
+           		<a href="/account">{{ 'layout.customer.account' | t }}</a>
+        	{% endif %}
+	        {{ 'Cerrar sesión' | customer_logout_link }}
+        {% else %}
+          <a class="shopping-car-bar-icon" href="/account/login">
+              <img class="img-responsive" src="{{ 'icon-usuario.svg'  | asset_url }}" alt=""/>
+          </a>
+          <div class="visible-md visible-lg">
+          {{ 'Iniciar Sesión' | customer_login_link }}
+          </div>
+        {%endif%}
+        <!--<a href="#">Iniciar sesión</a>-->
+      </div>
+{%endif%}

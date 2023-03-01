@@ -1,0 +1,10 @@
+{% assign discountValue = discountValue | strip | plus: 0 %}
+{% assign productPrice = productPrice | strip | plus: 0 %}
+{% assign finalPrice = finalPrice | strip | plus: 0 %}
+{% assign discountedPrice = 100 | minus: discountValue | times: productPrice | divided_by: 100 %}
+{% if finalPrice > discountedPrice %}
+  {% assign final = discountedPrice %}
+{% else %}
+  {% assign final = finalPrice %}
+{% endif %}
+{{final}}

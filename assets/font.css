@@ -1,0 +1,66 @@
+@font-face {
+    font-family: 'VerbSemibold-Italic';
+    src: url('VerbSemibold-Italic.eot?#iefix') format('embedded-opentype'),
+         url('VerbSemibold-Italic.otf')  format('opentype'),
+         url('VerbSemibold-Italic.woff') format('woff'),
+         url('VerbSemibold-Italic.ttf')  format('truetype'),
+         url('VerbSemibold-Italic.svg#VerbSemibold-Italic') format('svg');
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'VerbRegular-Bold';
+    src: url('VerbRegular-Bold.eot?#iefix') format('embedded-opentype'),
+    url('VerbRegular-Bold.otf')  format('opentype'),
+    url('VerbRegular-Bold.woff') format('woff'),
+    url('VerbRegular-Bold.ttf')  format('truetype'),
+    url('VerbRegular-Bold.svg#VerbRegular-Bold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'VerbMedium';
+    src: url('VerbMedium.eot?#iefix') format('embedded-opentype'),
+    url('VerbMedium.otf')  format('opentype'),
+    url('VerbMedium.woff') format('woff'),
+    url('VerbMedium.ttf')  format('truetype'),
+    url('VerbMedium.svg#VerbMedium') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'VerbRegular';
+    src: url('VerbRegular.eot?#iefix') format('embedded-opentype'),
+    url('VerbRegular.otf')  format('opentype'),
+    url('VerbRegular.woff') format('woff'),
+    url('VerbRegular.ttf')  format('truetype'),
+    url('VerbRegular.svg#VerbRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'VerbExtrabold';
+    src: url('VerbExtrabold.eot?#iefix') format('embedded-opentype'),
+    url('VerbExtrabold.otf')  format('opentype'),
+    url('VerbExtrabold.woff') format('woff'),
+    url('VerbExtrabold.ttf')  format('truetype'),
+    url('VerbExtrabold.svg#VerbExtrabold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'VerbSemibold';
+    src: url('VerbSemibold.eot?#iefix') format('embedded-opentype'),
+    url('VerbSemibold.otf')  format('opentype'),
+    url('VerbSemibold.woff') format('woff'),
+    url('VerbSemibold.ttf')  format('truetype'),
+    url('VerbSemibold.svg#VerbSemibold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}

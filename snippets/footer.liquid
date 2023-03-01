@@ -1,0 +1,42 @@
+<footer class="footer">
+    <div class="holder">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-xs-6 col-sm-6">
+                    <nav class="nav-footer">
+                        <ul>
+                        {% for link in linklists.footer.links %}
+                            <li>{{ link.title | link_to: link.url }}</li>
+                        {% endfor %}
+                        </ul>
+                    </nav>
+                </div>
+              
+                <div class="col-xs-6 col-sm-6">
+                    <div class="paypal">
+                        <div class="text">Compra con confianza</div>
+                        <a class="icon" href="https://www.paypal.com" target="_blank">
+                            <img class="img-responsive" src="{{ 'icon-paypal-icon.svg' | asset_url }}" alt=""/>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 col-xs-6">
+                    <div class="copyright">
+                        <a class="icon" href="/">
+                            <img class="img-responsive" src="{{ 'icon-logo.png' | asset_url }}" alt="Controls Online"/>
+                        </a>
+                        <div class="text">Todos los derechos reservados</div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xs-6">
+                    <a class="goplek-logo" href="http://goplek.com" target="_blank">
+                        <img alt="Goplek - Web Studio" class="img-responsive" src="{{ 'icon-goplek.svg' | asset_url }}">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

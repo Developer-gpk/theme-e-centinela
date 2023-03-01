@@ -1,0 +1,53 @@
+{% assign products_per_page = settings.products_per_row | times: settings.number_of_rows %}
+{% paginate collection.products by 18 %}
+
+{% if collection.all_tags.size > 0 %}
+<section class="category-thumbs hidden-xs">
+  {% for tag in collection.tags %}
+    {% assign mystring = tag | handleize %}
+    {% unless current_tags contains tag  or collection.handle == mystring %}
+    <a class="category-thumb-item" href="/collections/{{collection.handle}}/{{mystring}}">
+        <div class="category-thumb-picture">
+            {%assign c = collections[mystring] %}
+            {% if c.image %}
+              <img src="{{ c.image | img_url: '90x90', crop: 'center' }}" alt=""/>
+            {% endif %}
+        </div>
+        <div class="category-thumb-title">{{ tag }}</div>
+    </a>
+    {% endunless %}
+  {% endfor %}
+</section>
+{% endif %}
+{% include 'filters-content' %}
+{% include 'matching-products' %}
+{% if paginate.pages > 1 %}
+  <ul class="pagination">
+    {% if paginate.previous %}
+      <li><a href="{{ paginate.previous.url }}" title="{{ paginate.previous.title }}">Previous</a></li>
+    {% endif %}
+
+    {% for part in paginate.parts %}
+
+      {% if part.is_link %}
+        <li>
+          <a href="{{ part.url }}" title="">{{ part.title }}</a>
+        </li>
+      {% else %}
+        {% if part.title == paginate.current_page %}
+          <li class="active"><span>{{ part.title }}</span></li>
+        {% else %}
+          <li><span>{{ part.title }}</span></li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% if paginate.next %}
+      <li><a href="{{ paginate.next.url }}" title="{{ paginate.next.title }}">Next</a></li>
+    {% endif %}
+  </ul>
+{% endif %}
+
+{% endpaginate %}
+
+ {%include 'recently-collection' %}

@@ -1,0 +1,352 @@
+{{ '//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js' | script_tag }}
+{{ 'api.jquery.js' | shopify_asset_url | script_tag }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+<style type="text/css">
+  #recentviews1 {clear: both; margin: 30px 0;}
+  #recentviews1 #rv__recent_products .rv__product_box h2 a {white-space:initial !important;}
+  #recentviews1 .row_no_wrap .rv__product_box h2 a {white-space:initial !important;}
+  
+  #recentviews1 .rv__img_wrap.small {
+    display: table-cell;
+    font-size: 0;
+    height: 120px;
+    text-align: center;
+    vertical-align: middle;
+    width: 800px;
+  }	
+  #recentviews1 .rv__img_wrap.compact {
+    display: table-cell;
+    font-size: 0;
+    height: 200px;
+    text-align: center;
+    vertical-align: middle;
+    width: 800px;
+  }
+
+  #recentviews1 .rv__img_wrap.medium {
+    display: table-cell;
+    font-size: 0;
+    height: 280px;
+    text-align: center;
+    vertical-align: middle;
+    width: 800px;
+  }
+
+  #recentviews1 .rv__img_wrap.large {
+    display: table-cell;
+    font-size: 0;
+    height: 520px;
+    text-align: center;
+    vertical-align: middle;
+    width: 800px;
+  }
+  <!-- End Custom css -->
+  #rv__recent_products.rv__grid{width: 100%; margin-top: 20px;}
+  .rv__grid .row{ display: block; clear: both;}
+  .rv__grid .rv__row .rv__column{ float: left; }
+  .rv__grid .rv__row .rv__column.rv__one{ width: 8.3%; }
+  .rv__grid .rv__row .rv__column.rv__two{ width: 16.66%; }
+  .rv__grid .rv__row .rv__column.rv__three{ width: 24.96%; }
+  .rv__grid .rv__row .rv__column.rv__four{ width: 33.2%; }
+  .rv__grid .rv__row .rv__column.rv__five{ width: 41.5%; }
+  .rv__grid .rv__row .rv__column.rv__six{ width: 49.8%; }
+  .rv__grid .rv__row .rv__column.rv__seven{ width: 58.1%; }
+  .rv__grid .rv__row .rv__column.rv__eight{ width: 66.4%; }
+  .rv__grid .rv__row .rv__column.rv__nine{ width: 77.4%; }
+  .rv__grid .rv__row .rv__column.rv__ten{ width: 83%; }
+  .rv__grid .rv__row .rv__column.rv__eleven{ width: 91.3%; }
+  .rv__grid .rv__row .rv__column.rv__twelve{ width: 100%; }
+  .rv__grid .rv__row .rv__column>div{ margin: 1em;border: 1px solid #dcdcdc;padding: 15px 10px;}
+  .rv__clearfix{ clear: both; }
+  .rv__grid img.rv__responsive{
+    max-width: 100%;
+  }
+  .rv__grid h2{ font-size: 14px; }
+  .rv__center{ text-align: center; }
+  
+  .title {font-size: 23px;position: relative;}
+  .title.bordered_bt {position: relative;margin-bottom: 30px;padding-bottom: 10px;}
+  .title.bordered_bt:after {position: absolute;content:" ";left: 0px;right: 0px;bottom: -3px;margin: 0 auto;width: 50px;height: 3px;background: #000;pointer-events: none;}
+ 
+  
+.nav_dots {
+    text-align: center;
+    margin: 10px 0px 15px;
+  display: none;
+}
+.nav_dots span {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background: #dcdcdc;
+    border-radius: 100%;
+    margin: 0px 5px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+  .nav_dots span:hover, .nav_dots span:focus, .nav_dots span:active, .nav_dots span.active {background: #000000;}
+  
+
+  
+  
+   @media screen and (max-width: 991px){
+      .rv__grid .rv__row .rv__column>div {
+    margin: 0.5em;
+      }
+        .rv__grid .rv__row .rv__column.rv__three {
+    width: 33.33%;
+  }
+
+    }
+
+   /* @media screen and (max-width: 568px){
+    .rv__sm_twelve{ width:100% !important;} 
+      .row_no_wrap {
+    white-space: nowrap !important;
+    overflow-y: hidden  !important;
+}
+      .row_no_wrap .rv__column{display: inline-block  !important;float: none  !important;}
+  */ }
+
+  #rv__recent_products.rv__grid {
+  background : whitesmoke;
+  border:solid;
+  border-style: groove;
+  border-width: 2px;
+  
+  }
+  
+@media screen and (max-width: 500px){
+   #rv__recent_products {
+    overflow-x: scroll;
+    position: relative;
+}
+  #rv__recent_products::-webkit-scrollbar {
+    height: 5px;
+}
+ 
+#rv__recent_products::-webkit-scrollbar-thumb {
+  background-color: #dcdcdc;
+  outline: 1px solid slategrey;
+}
+  
+#rv__recent_products .pro_list{
+    position: relative;
+    display: table;
+}
+  #rv__recent_products .pro_list .rv__column.rv__three {
+    min-width: 300px;
+    display: table-cell;
+    float: none;
+    vertical-align: top;
+}
+      
+      #rv__recent_products .pro_list .rv__column.rv__three {
+    min-width: 300px;
+}
+  .nav_dots {
+  display: block;
+}
+      
+  }
+  
+ 
+  
+</style>
+
+<div id="recentviews1"></div>
+<script>
+  function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  var expires = "expires="+d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function checkCookie() {
+  var user = getCookie("username");
+  if (user != "") {
+    alert("Welcome again " + user);
+  } else {
+    user = prompt("Please enter your name:", "");
+    if (user != "" && user != null) {
+      setCookie("username", user, 365);
+    }
+  }
+}
+var currentProducts1;
+  $.post(
+    'https://www.qetail.com/apps/qerecentlyview/Auth/getclass',
+    {
+      shop_url:"{{ shop.url }}"
+    }).done(function(response){
+    data = JSON.parse(response);
+    //console.log(data);
+    $enableapp=data[0].enableapp;
+    $slider_title=data[0].slider_title;  
+    $productpage=data[0].productpage;
+    $collectionpage=data[0].collectionpage;
+    $homepage=data[0].homepage;
+    $noofproduct=data[0].noofproduct;
+    $border_size=data[0].border_size;
+    $border_style=data[0].border_style;
+    $border_color=data[0].border_color;
+   
+    $bg_color=data[0].bg_color;
+    $text_color=data[0].text_color;
+    $img_size=data[0].img_size;        
+
+    if ($enableapp == 'on' && $homepage == 'on') {
+      
+   
+      var str = '<div class="rv__row"><div class="rv__twelve"><h1 class="rv__center" style="color:'+$text_color+'">'+$slider_title+'</h1></div></div><div id="rv__recent_products" class="rv__grid" style="background:'+$bg_color+';color:'+$text_color+';border-style:'+$border_style+';border-width:'+$border_size+';border-color:'+$border_color+'"><div class="rv__row  clearfix row_no_wrap pro_list"></div><div id="rv__spinner"></div></div><div class="nav_dots"><span></span><span></span><span></span></div>';
+$("#recentviews1").html(str);
+      
+      var spinner2;
+if(spinner2 == undefined){
+  $("head").append($("<script />",{src: "//cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"}));
+  setTimeout(function(){
+    var spinner2 = new Spinner({top: "50%", scale: 0.5}).spin(document.getElementById('rv__spinner'))
+  },10000000);
+}
+      if(jQuery == undefined){
+        $("head").append($("<script />",{src: "//code.jquery.com/jquery-2.1.4.min.js"}));
+      }
+      if(jQuery.cookie == undefined){
+        //$("head").append($("<script />",{src: "//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"}));
+      }
+      var pHandle  
+      {% if product %}
+      pHandle = "{{product.handle}}";
+      {% endif %}
+      var pLimit   = 4; 
+      pLimit       = $noofproduct;
+      var pPointer = 0;
+      jQuery(function($){
+        // Gives the asse0ts enough time to load.
+        setTimeout(function(){
+          //console.log(jQuery.cookie('rv__recent_products'));
+          //if(jQuery.cookie('rv__recent_products') == undefined){
+          /*if(getCookie("rv__recent_products") == ""){
+            if(pHandle){
+              //jQuery.cookie('rv__recent_products', "{{product.handle}}", {expires: 365, path: "/"});
+            }
+          }
+          var currentProducts = [];
+          //if(jQuery.cookie('rv__recent_products') != undefined){
+          if(getCookie("rv__recent_products") != ""){
+            var ti = 0;
+            //currentProducts1 = jQuery.cookie('rv__recent_products').split(","); 
+            currentProducts1 = getCookie("rv__recent_products").split(",");
+
+            for(pi=0;pi<currentProducts1.length;pi++){
+              if(currentProducts1[pi] != "" && currentProducts1[pi] != undefined){
+                currentProducts[ti] = currentProducts1[pi];
+                ti = parseInt(ti) + 1;
+              }
+            }
+          }*/
+          if(getCookie("qe_recent_products") != ""){
+          	var currentProducts = getCookie("qe_recent_products").split(",");
+          }else{
+            var currentProducts = [];
+          }
+          if(currentProducts.length > 0){
+            $('#_rvp').show()
+          }
+          // set the current product
+          // If its not already listed
+          /*if(currentProducts.indexOf(pHandle) == -1){
+            // If we are at the limit move it to the front
+            if(currentProducts.length >= pLimit){
+              currentProducts.unshift; // remove very last item
+            }
+            //currentProducts.push(pHandle); // add this one
+          }
+          // prevent cookie override.
+          if(currentProducts.length > 0){
+            setCookie("rv__recent_products", currentProducts.join(","), "365");
+            //jQuery.cookie('rv__recent_products', currentProducts.join(","), {expires: 365, path: "/"}); 
+          }*/
+          //console.log(currentProducts);
+          
+        
+          
+          $("#rv__spinner").hide();
+          if(currentProducts.length == 0){
+          $( "#recentviews1").hide();
+          
+          }
+          else
+          {
+            $.each(currentProducts.reverse(), function(i,e){
+
+                 
+              // console.log(e);
+              if(pPointer >= pLimit || e == '' || e == undefined){
+                return false;
+              }else{
+                pPointer += 1;
+                Shopify.getProduct(e, function(product){  
+                  //console.log(product);
+                  var img = product.featured_image;
+                  var imgs = img.split(".");
+                  var ext = imgs[imgs.length-1];
+                //  alert($img_size);
+                  
+                  $img_size = $img_size.replace("px", "");
+                 // alert($img_size);
+                  
+                  
+                  img = img.replace("."+ext, "_"+$img_size+"."+ext);
+                  // we now have the product
+                  var productContainer = $("<div />",{class: "rv__column rv__three rv__sm_twelve"});
+                  var productBox       = $("<div />",{class: "rv__product_box rv__center"});
+                  var productImg       = $("<div />",{class: "rv__product_img"});
+                  var plink            = $("<a />",{alt: product.title, title: product.title, href: product.url});
+                  var plink2            = $("<a />",{alt: product.title, title: product.title, href: product.url,html: product.title});
+                  var pTitle             = $("<h2/>");
+                  var pSKU             = $("<div/>",{class: "rv__price", style: "text-transform: uppercase", html: "SKU: " + product.handle});
+                  var pImage           = $("<img />",{class: "rv__responsive", src: img });
+                  var pImageWrap       = $("<div />",{class: "rv__img_wrap "+$img_size});
+                  var pPrice           = $("<div/>",{class: "rv__price", html: Shopify.formatMoney(product.price, "{{ shop.money_with_currency_format }}")});
+                  productImg.append(plink);
+                  pImageWrap.append(pImage);
+                  plink.append(pImageWrap);
+                  pTitle.append(plink2);
+                  productBox.append(productImg);
+                  productBox.append(pTitle);
+				  productBox.append(pSKU);
+                  productBox.append(pPrice);
+                  productContainer.append(productBox);
+                  $("#rv__recent_products.rv__grid>.rv__row:last").append(productContainer);
+                  $("#rv__recent_products.rv__grid").append("<div class='rv__clearfix'></div>");
+                });
+              } 
+            });
+          }
+          }, 1000);
+        });
+
+      }
+
+
+             });
+</script>
+

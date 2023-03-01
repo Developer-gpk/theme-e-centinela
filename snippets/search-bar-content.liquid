@@ -1,0 +1,32 @@
+<div class="search-bar-content">
+  <div class="holder">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-6 col-sm-3">
+          <a class="logo" href="/">
+            <img class="img-responsive" src="{{ 'logo-centinela.svg'  | asset_url }}" alt="Controls Online"/>
+          </a>
+        </div>
+        <div class="hidden-xs col-sm-6">
+          <form class="search-bar" method="get" action="/search">
+            <div class="search-field">
+              <input type="text" name="q" id="search" placeholder="Número de Parte / Palabra Clave" value="{{ search.terms | escape }}" />
+            </div>
+            <button class="search-icon">
+              <img class="img-responsive" src="{{ 'icon-search-icon.svg'  | asset_url }}" alt="search"/>
+            </button>
+          </form>
+        </div>
+        <div class="col-xs-6 col-sm-3">
+          {% include 'shopping-car-bar' %}
+        </div>
+        <!-- Toggle Button -->
+        <button class="toggle-btn visible-xs">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

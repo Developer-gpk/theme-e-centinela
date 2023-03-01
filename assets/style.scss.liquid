@@ -1,0 +1,121 @@
+.trim-text {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Popup */
+.popup.background{
+    background: #FFFFFF;
+    bottom: 0;
+    left: 0;
+    opacity: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1;
+}
+
+.popup.wrapper{
+    display: none;
+    position: fixed;
+    z-index: 1;
+}
+
+.popup.close-button{
+    background: url({{ 'x.svg' | asset_url }}) no-repeat center center;
+    cursor: pointer;
+    height: 15px;
+    position: absolute;
+    right: 20px;
+    text-align: center;
+    top: 15px;
+    width: 15px;
+}
+
+.modal-view{
+	background-color:rgb(255,255,255);
+	padding: 35px 20px;
+	width:506px;
+	/* Firefox v3.5+ */
+	-moz-box-shadow:0px 0px 9px 4px rgba(153,153,153,0.38);
+	/* Safari v3.0+ and by Chrome v0.2+ */
+	-webkit-box-shadow:0px 0px 9px 4px rgba(153,153,153,0.38);
+	/* Firefox v4.0+ , Safari v5.1+ , Chrome v10.0+, IE v10+ and by Opera v10.5+ */
+	box-shadow:0px 0px 9px 4px rgba(153,153,153,0.38);
+	-ms-filter:"progid:DXImageTransform.Microsoft.Glow(Color=#ff999999,Strength=13)";
+	filter:progid:DXImageTransform.Microsoft.Glow(Color=#ff999999,Strength=13);
+}
+
+
+.modal-view .picture {
+    background: url({{ 'ok.png' | asset_url }}) no-repeat center center;
+	width: 77px;
+	height: 77px;
+	margin: 0 auto;
+}
+.modal-view .message {
+	font-family:VerbRegular;
+	font-size:16px;
+	line-height:120%;
+	text-align:center;
+	margin: 30px auto;
+}
+
+.modal-view .content-buttons {}
+.modal-view .content-buttons:after,
+.modal-view .content-buttons:before {
+	content: '';
+	clear: both;
+	display: table;
+}
+
+.modal-view a:focus,
+.modal-view a:hover,
+.modal-view a{
+	display: block;
+	float: left;
+	width: calc( 50% - 10px);
+	font-family:VerbRegular-Bold;
+	font-size:14px;
+	font-weight:bold;
+	letter-spacing:0pt;
+	line-height:120%;
+	text-align:center;
+	text-transform: uppercase;
+	text-decoration: none;
+	margin: 0 5px;
+	padding: 12px;
+}
+
+.modal-view a.white{
+	background: white;
+	color:rgb(51,51,51);
+}
+
+.modal-view a.blue{
+	background: #35368F;
+	color: white;
+}
+
+.error-message{
+    bottom: 0;
+	display: block;
+	position: absolute;
+    font-size: 10px;
+	width: 100%;
+}
+
+.mbk_has_inventory{
+	color:#155724 !important;
+}
+.mbk_no_inventory{
+	color:#721c24  !important;
+}
+.mbk_continue_shopping{
+	font-size: 18px;
+    margin: 20px 0px !important;
+    color: #000 !important;
+    line-height: 2em;
+}

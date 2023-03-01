@@ -1,0 +1,82 @@
+function scwsAppError(){}
+function scWsLoadScript(url, callback) {
+  var script = document.createElement("script");
+  script.type = "text/javascript";
+  script.async = true;
+  if (script.readyState) {
+    script.onreadystatechange = function() {
+      if (script.readyState == "loaded" || script.readyState == "complete") {
+        script.onreadystatechange = null;
+        callback();
+      };
+    };
+  } else {
+    script.onload = function() {
+      callback();
+    };
+  };
+  script.src = url;
+  document.getElementsByTagName("head")[0].appendChild(script);
+};
+var scjQueryWS;
+scWsLoadScript("//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js",function(){
+  console.log('ScWs: jquery loaded');
+ scjQueryWS = jQuery.noConflict(true);
+  
+ SCWS.sc_ws_variant_update = function(variant,selector){
+   var pid = scjQueryWS(selector.variantIdField).parents('form').attr('sc_ws_pid');
+   	var sc_ws_sale_price = variant.price;
+   	var sc_ws_variant_price = null;
+   if(SCWS["discount_rule_"+pid]){
+     var sc_ws_product_discount_rule = SCWS["discount_rule_"+pid];
+   	 sc_ws_sale_price = variant.price - variant.price * sc_ws_product_discount_rule[0]/100;
+     sc_ws_variant_price = variant.price;
+   }
+   scjQueryWS('.sc-ws-discount-price-'+pid).html(SCWS.format_money(sc_ws_sale_price));
+   if(sc_ws_variant_price !=  null){
+     scjQueryWS('.sc-ws-variant-price-'+pid).html(SCWS.format_money(sc_ws_variant_price));
+   }
+ }
+ if(scWsAppProcess){
+   scjQueryWS(SCWS.checkoutSelector).attr('disabled','disabled');
+   scWsAppProcess(scjQueryWS,function(){
+     SCWS.calculateDiscount(function(){
+						if(SCWS.discount.hasOwnProperty('price') && SCWS.discount.price != 0){
+								scjQueryWS(SCWS.checkoutSelector).bind('click',function(e){
+										e.preventDefault();
+										SCWS.getCheckout();
+								});		
+								var discounted_price = SCWS.cart.total_price - SCWS.discount.price;
+								scjQueryWS('.sc-ws-cart-total-price').html(
+										SCWS.format_money( discounted_price)+"<del>"+SCWS.format_money( SCWS.cart.total_price)+"</del>" 
+								);
+						}
+						scjQueryWS(SCWS.checkoutSelector).removeAttr('disabled');
+     	if(!SCWS.hasOwnProperty('qtyMessage') || SCWS.qtyMessage == "" || !SCWS.hasOwnProperty('priceMessage') || SCWS.priceMessage == "" ){
+         scjQueryWS.ajax({
+           type:'GET',
+           url: '/apps/wholesale-simplified/app-front/app_front/get_settings',
+           dataType: 'json',
+           success:function(data){
+             if(data.type == 'notice'){
+               var data = JSON.parse( data.text );
+               SCWS.qtyMessage = data.qtyMessage;
+               SCWS.priceMessage = data.priceMessage;
+               SCWS.getNotice(function(){
+                 console.log('notice added');
+               });
+             }
+           },
+           error: function(){
+           }
+         });
+       }else{
+         SCWS.getNotice(function(){
+           console.log('notice added');
+         });
+       }
+     });
+     
+   });
+ }
+});

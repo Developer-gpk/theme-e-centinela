@@ -1,0 +1,619 @@
+<script type="text/javascript">
+
+  const baseURL = 'https://advanced-wishlist.hulkapps.com/api';
+  window.customerID = {{ customer.id | json }};
+  window.domain = {{ shop.permanent_domain | json }};
+  window.product = {{ product | json }};
+
+  //Polyfill for closest()
+  if (window.Element && !Element.prototype.closest) {
+    Element.prototype.closest =
+      function(s) {
+      var matches = (this.document || this.ownerDocument).querySelectorAll(s),
+          i,
+          el = this;
+      do {
+        i = matches.length;
+        while (--i >= 0 && matches.item(i) !== el) {};
+      } while ((i < 0) && (el = el.parentElement));
+      return el;
+    };
+  }
+
+  //Polyfill for HTMLCollection.forEach
+  if ('NodeList' in window && !NodeList.prototype.forEach) {
+    // console.info('polyfill for IE11');
+    NodeList.prototype.forEach = function (callback, thisArg) {
+      thisArg = thisArg || window;
+      for (var i = 0; i < this.length; i++) {
+        callback.call(thisArg, this[i], i, this);
+      }
+    };
+  }
+
+  var HulkappWishlist = {
+
+    init: function () {
+
+      customerID = window.customerID;
+      shopDomain = window.domain;
+      customerStatus = 'customer';
+      DefaultWishlistID = [];
+      wishlistProductsData = [];
+      wishlistsData = [];
+      wishlistBtnStyle = '';
+      deactivatedStore = false;
+      appStatus = false;
+      let WishlistSettings, guestWishlistData, wishlistButtonTarget;
+
+      HulkappWishlist._checkFOrInactiveStore();
+      if(customerID == undefined || customerID == null || customerID.length <= 0){
+        customerStatus = 'guest';
+      }
+      if(deactivatedStore == true){
+        document.querySelectorAll('[data-wishlist]').forEach(function(ele){
+          ele.remove();
+        });
+        return;
+      }
+      HulkappWishlist._getShopSettings();
+    },
+
+     _getShopSettings: function(){
+
+      wishlistsData = sessionStorage.getItem('wishlistsData') || [];
+      guestWishlistData = localStorage.getItem('guestWishlistData');
+
+      const ShopURL = baseURL+'/shop/settings?shop='+shopDomain;
+      let request = new XMLHttpRequest();
+      request.open('GET', ShopURL, true);
+      request.send();
+      request.onload = function () {
+        let response = JSON.parse(this.response);
+        WishlistSettings = response;
+        appStatus = WishlistSettings.general.frontend_enabled;
+
+        if(appStatus == false){
+          document.querySelectorAll('[data-wishlist]').forEach(function(ele){
+            ele.remove();
+          });
+          return;
+        }
+
+        if(WishlistSettings && WishlistSettings.style.position != 'custom'){
+          HulkappWishlist._addWishlistButton();
+        }
+        HulkappWishlist._updateWishlistButton();
+        if(customerStatus == 'customer' && WishlistSettings.general.is_guest_enabled == true && guestWishlistData.length > 0){
+          HulkappWishlist._addToWishlistFromGuestList();
+        }
+
+        const hulkWishlistListing =  document.querySelectorAll('[data-wishlist]')[0];
+        if (typeof(hulkWishlistListing) == 'undefined' || hulkWishlistListing == null){
+          return false;
+        }
+        let wishlistEle = Array.from(document.querySelectorAll('[data-wishlist]'));
+        wishlistEle.forEach(function(ele){
+          ele.querySelector('span').innerHTML = WishlistSettings.language.button_text;
+        });
+        if(customerID != '' && customerID != null && customerID != undefined){
+          if(!wishlistsData || wishlistsData === undefined || wishlistsData === 'undefined' || wishlistsData === null || wishlistsData === 'null') {
+            wishlistsData = [];
+          }
+          HulkappWishlist._getUserWishlist();
+          HulkappWishlist._updateuserWishlists();
+        }
+        HulkappWishlist._manageWishlistButtonAction();
+        HulkappWishlist._someBaseFunction();
+        HulkappWishlist._createNewWishlist();
+        HulkappWishlist._checkForProductStatus();
+      }
+
+      // To Update The Guest WishlistData in Local Storage
+      if(!guestWishlistData || guestWishlistData === undefined || guestWishlistData === null){
+        guestWishlistData = [];
+        localStorage.setItem('guestWishlistData', []);
+      }else{
+        guestWishlistData = JSON.parse(guestWishlistData)
+      }
+
+    },
+
+    _checkFOrInactiveStore: function(){
+      const statusEle = document.querySelectorAll('[data-wishlist-wrapper]')[0];
+      if(statusEle == undefined || statusEle == null){
+        return;
+      }
+      let lastUpdateTime = statusEle.getAttribute('data-time');
+      if(lastUpdateTime == undefined || lastUpdateTime == null || lastUpdateTime == ''){
+        return;
+      }
+      lastUpdateTime = new Date(statusEle.getAttribute('data-time'));
+	    const today = new Date();
+      const diffTime = Math.abs(today - lastUpdateTime);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if(diffDays >= 30){
+        deactivatedStore = true;
+      }
+    },
+
+    _messageUpdate: function(msg){
+      let currentFormMsg = document.querySelectorAll('.wishlistError')[0];
+      if(currentFormMsg != null && currentFormMsg != undefined){
+        currentFormMsg.innerHTML = msg;
+        currentFormMsg.classList.add('active');
+        setTimeout(function(){
+          currentFormMsg.classList.remove('active');
+        }, 7000);
+      }
+    },
+
+    _addWishlistButton: function(){
+      if(window.product == null || window.product == undefined){
+      	return false;
+      }
+      if(WishlistSettings && WishlistSettings.style.button_style == 'style_1'){
+      	WishlistSettings.language.button_text = '';
+        WishlistSettings.language.success_button_text = '';
+      }
+      let hulkWishlistButton = '<a href="#" class="icon-wishlist-heart-empty wishlist-btn '+ wishlistBtnStyle +'" data-wishlist data-added="false" data-proid="'+window.product.id+'" data-varid="'+window.product.variants[0].id+'"><span>'+WishlistSettings.language.button_text+'</span>';
+      if(WishlistSettings.general.public_wishlist_count){
+        hulkWishlistButton += '<span class="count"></span>';
+      }
+      hulkWishlistButton += '</a>';
+      const selector = document.querySelectorAll('form[action="/cart/add"]')[0].querySelector('[type="submit"]');
+      if(selector) {
+          document.querySelectorAll('[data-wishlist]').forEach(function(ele){
+            if(ele.hasAttribute('data-gridHulkList') == false){
+              ele.remove();
+            }
+          });
+          if(document.querySelectorAll('form[action="/cart/add"]')[0].querySelector('[data-wishlist]') != undefined && document.querySelectorAll('form[action="/cart/add"]')[0].querySelector('[data-wishlist]') != null){
+            document.querySelectorAll('form[action="/cart/add"]')[0].querySelector('[data-wishlist]').remove();
+          }
+          selector.insertAdjacentHTML('afterend', hulkWishlistButton);
+      }
+      HulkappWishlist._updateWishlistButton();
+      HulkappWishlist._updateWishlistText();
+    },
+
+    _updateWishlistText: function(){
+      document.querySelectorAll('[data-hulkWishlistHeading]')[0].innerHTML = WishlistSettings.language.heading_text;
+      document.querySelectorAll('[data-chooseWishlistText]')[0].innerHTML = WishlistSettings.language.wishlist.choose;
+      document.querySelectorAll('[data-createWishlistText]')[0].innerHTML = WishlistSettings.language.wishlist.create;
+      document.querySelectorAll('[data-myWishlistText]')[0].innerHTML = WishlistSettings.language.wishlist.my;
+    },
+
+    _updateWishlistButton: function(){
+      const btnSettings = WishlistSettings.style;
+      wishlistBtnStyle = btnSettings.button_style;
+      let btnStyle, regularBtns;
+      regularBtns = 'background-color: '+WishlistSettings.style.theme_color+'; border: 1px solid '+WishlistSettings.style.theme_color+'; color: white;';
+      if(WishlistSettings && WishlistSettings.style.button_style == 'style_1' || WishlistSettings.style.button_style == 'style_3'){
+         btnStyle = 'color: '+btnSettings.button_text_color+';';
+      }else{
+        btnStyle = 'background-color: '+btnSettings.button_background_color+'; border: '+btnSettings.button_border+'px solid '+btnSettings.button_border_color+';';
+        btnStyle += 'border-radius: '+btnSettings.button_border_radius+'px; color: '+btnSettings.button_text_color+';';
+      }
+      const wishlistBtn = document.querySelectorAll('[data-wishlist]');
+      for(var i=0; i<wishlistBtn.length; i++) {
+        wishlistBtn[i].classList.add(btnSettings.button_style);
+        wishlistBtn[i].setAttribute("style", btnStyle);
+      }
+      document.querySelectorAll('.hulkThemeColor').forEach(function(ele){
+        ele.setAttribute('style', 'color: '+WishlistSettings.style.theme_color);
+      });
+      document.querySelectorAll('.hulkBtnStyle').forEach(function(ele){
+        ele.setAttribute('style', regularBtns);
+      });
+      let additionalBtnStyles = document.createElement("style");
+      additionalBtnStyles.innerHTML = ".wishlist-btn.style_1, .wishlist-btn.style_4{ color: "+WishlistSettings.style.theme_color+"; }\n";
+      additionalBtnStyles.innerHTML += ".wishlist-btn.style_2, .wishlist-btn.style_3{ background-color: "+WishlistSettings.style.theme_color+"; color: "+btnSettings.button_text_color+"; }\n";
+      document.body.appendChild(additionalBtnStyles);
+    },
+
+    _buttonUpdate: function(status, currentTarget, msg){
+      if(status == 'added'){
+        currentTarget.setAttribute('class', 'icon-wishlist-heart '+ wishlistBtnStyle +' wishlist-btn');
+        currentTarget.setAttribute('data-added', true);
+        currentTarget.querySelector('span').innerHTML = WishlistSettings.language.success_button_text;
+      }else{
+        currentTarget.setAttribute('class', 'icon-wishlist-heart-empty '+ wishlistBtnStyle +' wishlist-btn');
+        currentTarget.setAttribute('data-added', false);
+        currentTarget.querySelector('span').innerHTML = WishlistSettings.language.button_text;
+      }
+      if(document.querySelectorAll('.wishlistError')[0] != null && document.querySelectorAll('.wishlistError')[0] != undefined){
+        let currentFormMsg = document.querySelectorAll('.wishlistError')[0];
+        currentFormMsg.innerHTML = msg;
+        currentFormMsg.classList.add('active');
+        setTimeout(function(){
+          currentFormMsg.classList.remove('active');
+        }, 7000);
+      }
+
+    },
+
+    _addToWishlistFromGuestList: function(){
+      let productsToAdd = [];
+      guestWishlistData.forEach(function(product){
+        productsToAdd.push(product.productID);
+      });
+      const data = {
+        customer_id: customerID,
+        shop: shopDomain,
+        product_ids: productsToAdd,
+      };
+
+      let request = new XMLHttpRequest();
+      request.open('POST', baseURL + '/wishlist/add_multiple_products');
+      request.setRequestHeader('Content-type', 'application/json');
+      request.send(JSON.stringify(data)); // Make sure to stringify
+      request.onload = function() {
+        if(request.status == 200){
+          let response = JSON.parse(this.response);
+          guestWishlistData = [];
+          localStorage.setItem('guestWishlistData', []);
+          productsToAdd.forEach(function(productID){
+            const $targetEle = document.querySelectorAll('[data-wishlist][data-proid="'+productID+'"]')[0];
+            $targetEle.setAttribute('class', 'icon-wishlist-heart '+ wishlistBtnStyle +' wishlist-btn');
+            $targetEle.setAttribute('data-added', true);
+            $targetEle.querySelector('span').innerHTML = WishlistSettings.language.success_button_text;
+          });
+        }else{
+          let response = JSON.parse(this.response);
+          let msg = 'Something Went wrong. Please Try again later !';
+          if(response.message){ msg = response.message; }
+          HulkappWishlist._messageUpdate(msg);
+        }
+      }
+    },
+
+    _getUserWishlist: function(){
+      const ShopURL = baseURL + '/wishlist/lists?customer_id='+customerID+'&shop='+shopDomain;
+      let request = new XMLHttpRequest();
+      request.open('GET', ShopURL, true);
+      request.onload = function () {
+        if(request.status == 200){
+          let response = JSON.parse(this.response);
+          wishlistsData = response;
+          sessionStorage.setItem('wishlistsData', JSON.stringify(response));
+          wishlistsData.forEach(function(element){
+            let defaultElement = element.is_default;
+            if(defaultElement == true){
+              DefaultWishlistID.push(element.id);
+              return;
+            }
+          });
+          HulkappWishlist._updateuserWishlists();
+        }else{
+          let response = JSON.parse(this.response);
+          let msg = 'Something Went wrong. Please Try again later !';
+          if(response.message){ msg = response.message; }
+          HulkappWishlist._messageUpdate(msg);
+        }
+      }
+      request.send();
+    },
+
+    _createNewWishlist: function(){
+      document.querySelectorAll("[data-saveNewWishlist]")[0].onclick = function(event){
+        event.preventDefault();
+        const $targetElement = event.target;
+        let newWishlistName = document.querySelectorAll('[data-addNewWishlist]')[0].querySelector('[data-newWishlist]').value;
+        newWishlistName = newWishlistName.trim();
+        if(newWishlistName.length > 0){
+          const data = {
+            customer_id: customerID,
+            shop: shopDomain,
+            name: newWishlistName,
+          };
+          let request = new XMLHttpRequest();
+          request.open('POST', baseURL + '/wishlist/create', true);
+          request.setRequestHeader('Content-type', 'application/json');
+          request.send(JSON.stringify(data)); // Make sure to stringify
+          request.onload = function() {
+            if(request.status == 200){
+              let response = JSON.parse(this.response);
+              HulkappWishlist._getUserWishlist();
+              setTimeout(function(){
+                document.querySelectorAll('[data-newwishlist]')[0].value = '';
+                HulkappWishlist._updateuserWishlists();
+                HulkappWishlist._updateWishlistSelection(wishlistButtonTarget.getAttribute('data-proid'));
+              }, 500);
+              let msg = 'Wishlist Created!';
+              if(response.message){ msg = response.message; }
+              HulkappWishlist._messageUpdate(msg);
+            }else{
+              let response = JSON.parse(this.response);
+              let msg = 'Something Went wrong. Please Try again later !';
+              if(response.message){ msg = response.message; }
+              HulkappWishlist._messageUpdate(msg);
+            }
+          }
+        }else{
+          document.querySelectorAll('[data-addNewWishlist]')[0].querySelectorAll('[data-newWishlist]')[0].classList.add('error');
+        }
+      };
+    },
+
+    _updateuserWishlists: function(){
+      let wishlistHTML = '';
+      if(typeof(wishlistsData) === "string"){wishlistsData = JSON.parse(wishlistsData)}
+      wishlistsData.forEach(function(element){
+        wishlistHTML += ' <li>';
+        wishlistHTML += '<div class="input-group"><input type="checkbox" data-wishlistItem value="'+element.id+'" id="wishlist-'+element.id+'"><label for="wishlist-'+element.id+'" class="wishlist-checkbox"><span></span>'+element.name+'</label></div>';
+        wishlistHTML += '</li>';
+      });
+      if(document.querySelectorAll('[data-userWishlists]') != null && document.querySelectorAll('[data-userWishlists]') != undefined){
+        document.querySelectorAll('[data-userWishlists]')[0].innerHTML = wishlistHTML;
+      }
+      if(document.querySelectorAll('[data-openCreateSection]') != null && document.querySelectorAll('[data-openCreateSection]') != undefined){
+        document.querySelectorAll('[data-openCreateSection]')[0].style.display  = 'block';
+      }
+      if(document.querySelectorAll('[data-addNewWishlist]') != null && document.querySelectorAll('[data-addNewWishlist]') != undefined){
+        document.querySelectorAll('[data-addNewWishlist]')[0].style.display  = 'none';
+      }
+    },
+
+    _checkForProductStatus: function(){
+      let productsListing = '';
+      const productsListingLength =  Array.from(document.querySelectorAll('[data-wishlist]'));
+      let proCount = 0;
+      productsListingLength.forEach(function(element, index){
+        proCount += 1;
+        productsListing += element.getAttribute('data-proid');
+        if(proCount < productsListingLength.length){
+          productsListing += ',';
+        }
+      });
+      if(typeof(productsListingLength) == 'undefined' || productsListingLength == null){
+        return false;
+      }
+      if(customerStatus == 'guest'){
+        if(WishlistSettings.general.is_guest_enabled == true && guestWishlistData.length > 0){
+          guestWishlistData.forEach(function(product){
+            const $targetEle = document.querySelectorAll('[data-wishlist][data-proid="'+product.productID+'"]')[0];
+            if($targetEle){
+              $targetEle.setAttribute('class', 'icon-wishlist-heart '+ wishlistBtnStyle +' wishlist-btn');
+              $targetEle.setAttribute('data-added', true);
+              $targetEle.querySelector('span').innerHTML = WishlistSettings.language.success_button_text;
+            }
+          })
+        }
+      }else{
+        let request = new XMLHttpRequest();
+        let shopURL = baseURL + '/wishlist/product_status?product_ids='+productsListing+'&customer_id='+customerID+'&shop='+shopDomain;
+        request.open('GET', shopURL);
+        request.send();
+        request.onload = function () {
+          if(request.status == 200){
+            let response = JSON.parse(this.response);
+            const productsdata = response;
+            wishlistProductsData = productsdata;
+            productsdata.forEach(function(data){
+              const $targetEle = document.querySelectorAll('[data-wishlist][data-proid="'+data.product_id+'"]')[0];
+              if($targetEle){
+                if(data.wishlist_id){
+                  $targetEle.setAttribute('class', 'icon-wishlist-heart '+ wishlistBtnStyle +' wishlist-btn');
+                  $targetEle.setAttribute('data-added', true);
+                  $targetEle.querySelector('span').innerHTML = WishlistSettings.language.success_button_text;
+                }
+                if(WishlistSettings.general.public_wishlist_count){
+                  $targetEle.querySelector('span.count').innerHTML = ' (' + data.wishlist_count + ')';
+                }
+              }
+            });
+          }else{
+            let response = JSON.parse(this.response);
+            let msg = 'Something Went wrong. Please Try again later !';
+            if(response.message){ msg = response.message; }
+            HulkappWishlist._messageUpdate(msg);
+          }
+        }
+      }
+    },
+
+    _manageWishlistButtonAction: function(){
+      document.addEventListener('click', function(event){
+        if(event.target && event.target.hasAttribute('data-wishList') == true || event.target.closest('[data-wishList]') && event.target.closest('[data-wishList]').hasAttribute('data-wishList') == true ){
+          event.preventDefault();
+          let currentTarget;
+          if(event.target && event.target.hasAttribute('data-wishList') != true){
+            currentTarget = event.target.closest('[data-wishList]');
+          }else{
+            currentTarget = event.target;
+          }
+
+          let proID = currentTarget.getAttribute('data-proid');
+          let varID = currentTarget.getAttribute('data-varid');
+          if(customerStatus == 'guest'){
+            if(WishlistSettings.general.is_guest_enabled == true){
+              HulkappWishlist._addToWishlist(currentTarget, proID, varID, '');
+            }else{
+              if(document.querySelectorAll('.wishlistError')[0]){
+                let currentFormMsg = document.querySelectorAll('.wishlistError')[0];
+                currentFormMsg.innerHTML = WishlistSettings.language.success_message.for_guest_login_disabled;
+                currentFormMsg.classList.add('active');
+                setTimeout(function(){
+                  currentFormMsg.classList.remove('active');
+                }, 7000);
+              }
+            }
+          }else{
+            if(WishlistSettings.general.has_multiple_wishlist == true){
+              HulkappWishlist._updateWishlistSelection(proID);
+              document.querySelectorAll('[data-hulkappsWishlistPopup]')[0].classList.add('open');[0]
+              wishlistButtonTarget = currentTarget;
+            }else{
+              HulkappWishlist._addToWishlist(currentTarget, proID, varID, DefaultWishlistID);
+            }
+          }
+        }
+      });
+
+      document.querySelectorAll("[data-AddToWishlist]")[0].onclick = function(event){
+        let wishlistIDs = [];
+        const wishlistitems = Array.from(document.querySelectorAll('[data-wishlistitem]'));
+        wishlistitems.forEach(function(element){
+          if(element.checked == true){
+            wishlistIDs.push(element.value);
+          }
+        });
+
+        if(wishlistIDs.length == 0){
+           HulkappWishlist._removeFromWishlist(wishlistButtonTarget, wishlistButtonTarget.getAttribute('data-proid'), wishlistButtonTarget.getAttribute('data-varid'), []);
+        }else{
+          HulkappWishlist._addToWishlist(wishlistButtonTarget, wishlistButtonTarget.getAttribute('data-proid'), wishlistButtonTarget.getAttribute('data-varid'), wishlistIDs);
+        }
+      };
+    },
+
+    _updateWishlistSelection: function(proID){
+      let currentWishlistData = [];
+      wishlistProductsData.forEach(function(item){
+        if(item.product_id == proID){
+          currentWishlistData.push(item);
+        }
+      });
+      document.querySelectorAll('[data-wishlistitem]').forEach(function(element){
+        element.checked = false;
+      });
+      currentWishlistData.forEach(function(pro){
+        const wishListIDs = pro.wishlist_ids;
+        if(wishListIDs.length > 0){
+          wishListIDs.forEach(function(wishlistID){
+            document.querySelectorAll('[data-wishlistitem][value="'+wishlistID+'"]')[0].checked = true;
+          });
+        }
+      });
+    },
+
+    _addToWishlist: function(currentTarget, proID, varID, wishListIDs){
+      let dataAdded = currentTarget.getAttribute('data-added');
+      if(dataAdded == 'true' && (WishlistSettings.general.has_multiple_wishlist == false || customerStatus == 'guest')){
+        HulkappWishlist._removeFromWishlist(currentTarget, proID, varID, wishListIDs);
+      }else{
+        if(customerStatus == 'guest'){
+          let productData = {
+            productID: proID,
+            variantID: varID
+          }
+          guestWishlistData.push(productData);
+          localStorage.setItem('guestWishlistData', JSON.stringify(guestWishlistData));
+          let msg = WishlistSettings.language.success_message.without_login;
+          HulkappWishlist._buttonUpdate('added', currentTarget, msg);
+        }else{
+          const data = {
+            customer_id: customerID,
+            shop: shopDomain,
+            product_id: proID,
+            variant_id: varID,
+            wishlist_ids: wishListIDs,
+          };
+          let request = new XMLHttpRequest();
+          request.open('POST', baseURL + '/wishlist/add_product');
+          request.setRequestHeader('Content-type', 'application/json');
+          request.send(JSON.stringify(data)); // Make sure to stringify
+          request.onload = function() {
+            if(request.status == 200){
+              let response = JSON.parse(this.response);
+              let msg = WishlistSettings.language.success_message.for_login_users;
+              HulkappWishlist._buttonUpdate('added', currentTarget, msg);
+              document.querySelectorAll('[data-hulkappsWishlistPopup]')[0].classList.remove('open');
+              document.querySelectorAll('[data-addtowishlist]')[0].disabled = true;
+              setTimeout(function(){
+                HulkappWishlist._checkForProductStatus();
+              }, 1500);
+            }else{
+              let response = JSON.parse(this.response);
+              let msg = 'Maximum wishlist item limit exceeded!';
+              if(response.message){ msg = response.message; }
+              HulkappWishlist._messageUpdate(msg);
+              document.querySelectorAll('[data-hulkappsWishlistPopup]')[0].classList.remove('open');
+              document.querySelectorAll('[data-addtowishlist]')[0].disabled = true;
+            }
+          }
+        }
+      }
+    },
+
+    _removeFromWishlist: function(currentTarget, proID, varID, wishListIDs){
+      let msg = WishlistSettings.language.success_message.for_item_removed;
+      if(customerStatus == 'guest'){
+        let productData = {
+          productID: proID,
+          variantID: varID
+        }
+        if(guestWishlistData.length == 1){
+          guestWishlistData = [];
+        }else{
+          guestWishlistData = guestWishlistData.splice(guestWishlistData.indexOf(productData),1);
+        }
+        localStorage.setItem('guestWishlistData', JSON.stringify(guestWishlistData));
+        HulkappWishlist._buttonUpdate('remove', currentTarget, msg);
+      }else{
+        const data = {
+          customer_id: customerID,
+          shop: shopDomain,
+          product_id: proID,
+          variant_id: varID,
+          wishlist_ids: wishListIDs,
+        };
+        let request = new XMLHttpRequest();
+        request.open('POST', baseURL + '/wishlist/delete_product');
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(data)); // Make sure to stringify
+        request.onload = function() {
+          if(request.status == 200){
+            let response = JSON.parse(this.response);
+            let msg = 'Removed From Wishlist!';
+            if(response.message){ msg = response.message; }
+            HulkappWishlist._buttonUpdate('remove', currentTarget, msg);
+            document.querySelectorAll('[data-hulkappsWishlistPopup]')[0].classList.remove('open');
+            document.querySelectorAll('[data-addtowishlist]')[0].disabled = true;
+            setTimeout(function(){
+              HulkappWishlist._checkForProductStatus();
+            }, 1000);
+            //HulkappWishlist._messageUpdate(msg);
+          }else{
+            let response = JSON.parse(this.response);
+            let msg = 'Something Went wrong. Please Try again later !';
+            if(response.message){ msg = response.message; }
+            HulkappWishlist._messageUpdate(msg);
+          }
+        }
+      }
+    },
+
+    _someBaseFunction: function(){
+      if(document.querySelectorAll("[data-closeWishlistPopup]")[0]){
+        document.querySelectorAll("[data-closeWishlistPopup]")[0].onclick = function(){
+          document.querySelectorAll('[data-hulkappsWishlistPopup]')[0].classList.remove('open');
+          document.querySelectorAll('[data-openCreateSection]')[0].style.display = 'block';
+          document.querySelectorAll('[data-addNewWishlist]')[0].style.display = 'none';
+          document.querySelectorAll('[data-newwishlist]')[0].value = '';
+          document.querySelectorAll('[data-addtowishlist]')[0].disabled = true;
+        };
+      }
+      if(document.querySelectorAll("[data-openCreateSection]")[0]){
+        document.querySelectorAll("[data-openCreateSection]")[0].onclick = function(event){
+          event.preventDefault();
+          document.querySelectorAll('[data-addNewWishlist]')[0].style.display = 'block';
+          document.querySelectorAll('[data-openCreateSection]')[0].style.display = 'none';
+        };
+      }
+
+      document.addEventListener('change', function(event){
+        if(event.target && event.target.hasAttribute('data-wishlistitem') == true){
+          document.querySelectorAll('[data-addtowishlist]')[0].disabled = false;
+        }
+      });
+    },
+
+  }
+
+  document.addEventListener("DOMContentLoaded", function(event) {
+    HulkappWishlist.init();
+  });
+
+</script>

@@ -1,0 +1,179 @@
+{% include 'saw_product_variables' %}
+
+{% include 'filters-content' %}
+{% include 'breadcrumbs' %}
+
+{% assign handle = product.handle %}
+{% assign current_variant = product.selected_or_first_available_variant %}
+{% include 'saw_variant_variables' %}
+{% assign product_variants = product.variants %}
+
+<section class="product-view">
+  <div class="content">
+      <!-- Left side & mobile view -->
+      <div class="left">
+          <div class="product-view-picture">
+           <!-- aqui va la imagen zoom -->
+            <a href="{{ product | img_url: '356x356' , crop: 'center' }}" class="zoom">
+            <img class="img-responsive" src="{{ product | img_url: '166x166', crop: 'center' }}" alt="{{ product.featured_image.alt | escape }}" />
+            </a>
+          </div>
+          <div class="product-view-code visible-xs">
+              <div>{{ handle }}</div>
+          </div>
+          <div class="product-view-supplier visible-xs">
+              <div class="title"><strong><b>Marca:</b></strong></div>
+              <div class="cont">{{ product.vendor }}</div>
+              <div>
+                <div class="title"><strong>Código de Barras:</strong></div>
+                <div class="cont">{{ current_variant.barcode }}</div>
+              </div>
+          </div>
+          <div class="product-view-specifications visible-xs">
+              <div><strong><b>Especificaciones:</b></strong></div>
+              <a class="hidden" href="{{ current_variant.sku | append: '.pdf' | file_url }}" id="download-btn-mobile" target="_blank">
+                <span class="icon"><img src="{{ 'icon-pdf.svg' | asset_url }}" alt="PDF"></span>
+                <span class="text">Descargar</span>
+              </a>
+          </div>
+      </div>
+      <!-- /.Left side & mobile view -->
+    
+     <!--Script personal -->
+    <script defer>
+	$(function(){
+		$('.zoom').zoomy({
+			zoomSize: 256,
+			round: true,
+			border:'6px solid #fff'
+		});
+	});
+    </script>
+      
+      <!-- Middle side -->
+      <div class="middle hidden-xs">
+          <div class="product-view-code">
+              <div>{{ handle }}</div>
+          </div>
+          <div class="product-view-description">
+              <div class="title"><strong><b>Descripción:</b></strong></div>
+              <div>{{product.description}}</div>
+          </div>
+          <div class="product-view-supplier">
+              <div class="title"><strong><b>Marca:</b></strong></div>
+              <div class="cont">{{ product.vendor }}</div>
+         
+              <div>
+                <div class="title"><strong>Código de Barras:</strong></div>
+                <div class="cont">{{ current_variant.barcode }}</div>
+              </div>
+          </div>
+          <div class="product-view-specifications">
+              <div><strong><b>Especificaciones:</b></strong></div>
+              <a class="hidden" href="{{ current_variant.sku | append: '.pdf' | file_url }}" id="download-btn" target="_blank">
+                <span class="icon"><img src="{{ 'icon-pdf.svg' | asset_url }}" alt="PDF"></span>
+                <span class="text">Descargar</span>
+                <div>{{curren_variante.sku.pdf}}</div>
+              </a>
+          </div>
+        <!-- eliminar descripcion -->
+          
+      </div>
+      <!-- /.Middle side -->
+
+      <!-- Right side -->
+      <div class="right">
+          <div class="product-view-prices">
+            {% assign product_qty = 0 %}
+            {% for variant in product.variants %}
+            {% include 'bold-variant' with variant, hide_action: 'skip' %}
+
+                {% if variant.inventory_quantity > 0 %}
+                  {% assign product_qty = product_qty | plus: variant.inventory_quantity %}
+                {% endif %}
+            {% endfor %}
+
+            {% if product_qty <= 0 %}
+            <div class="availability" style="color:red;">{{ product_qty }} en existencia</div>
+            {% endif %}
+            {% if product_qty > 0 %}
+            <div class="availability">{{ product_qty }} en existencia</div>
+            {% endif %}
+            <div class="line">
+                <div class="left hidden">1</div>
+                <div class="line-through"></div>
+                <div class="right" id="line-through">{{ WCProductPrice | money }} USD</div>
+            </div>
+            
+            <form class="product-view-form" action="/cart/add" method="posts">
+              <div class="bold_qb_grid" data-variant-id="{{ product.selected_or_first_available_variant.id }}"></div>
+
+              <input name="id" type="hidden" value="{{current_variant.id}}"/>
+              <label for="product-view-form-quantity">Cantidad</label>
+              <input name="quantity" id="product-view-form-quantity" type="text" value="1" />
+              <button name="add" type="submit">AGREGAR AL CARRITO</button>
+            </form>
+          </div>
+      </div>
+      <!-- /.Right side -->
+
+      <div class="bottom visible-xs">
+          <div class="title"><strong><b>Descripción:</b></strong></div>
+          <div>{{ product.description }}</div>
+      </div>
+  </div>
+</section>
+
+<!-- Product Review -->
+<div id="shopify-product-reviews" data-id="{{product.id}}">{{ product.metafields.spr.reviews }}</div>
+<!-- ./ Product Review -->
+
+<!-- Related Products -->
+<div class="related-products">
+  {% include 'smoothie-cross' %}
+  {% comment %} {% section 'related-products' %} {% endcomment %}
+</div>
+<!-- ./ Related Products -->
+
+<script>
+
+  (function() {
+    'use strict';
+
+    // var $variantsSelectMobile = $('select[name=product-variations-mobile]');
+    var $variantsSelect = $('select[name=product-variations]');
+    var $productForm = $('.product-view-form');
+    var $variantInput = $productForm.children('input[type=hidden]');
+
+    // Set selected variation in checkout form.
+    $variantsSelect.on('change', function() {
+      $variantInput.val( $(this).val() );
+    });
+
+    // Verify if file exisits
+    function urlExists(url, callback) {
+		var http = new XMLHttpRequest();
+		http.open('HEAD', url);
+		http.onreadystatechange = function() {
+          if (this.readyState == this.DONE) {
+              callback(this.status != 404);
+          }
+		};
+		http.send();
+	}
+    
+    var downloadBtn = document.getElementById('download-btn');
+    var downloadBtnMobile = document.getElementById('download-btn-mobile');
+    var downloadLink = downloadBtn.getAttribute('href');
+    
+    urlExists(downloadLink, function(exist) {
+      if (exist) {
+        downloadBtn.className = downloadBtn.className.replace('hidden', '');
+        downloadBtnMobile.className = downloadBtn.className.replace('hidden', '');
+      }
+    });
+   
+    
+  })();
+</script>
+ {%include 'recently-product' %}

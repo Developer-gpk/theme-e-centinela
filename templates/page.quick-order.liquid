@@ -1,0 +1,401 @@
+<section class="quick-order">
+    <div class="header">
+        <h1 class="title">Orden Rápida</h1>
+       <!-- <div class="desc">Enter the part numbers or speed codes and quantities then click Add To Cart.</div> -->
+        <div class="desc">Ingrese los números de las partes y las cantidades, después presione el botón Añadir a Carrito.</div>
+    </div>
+    <div class="quick-order-form">
+        <div class="row titles">
+            <div class="col-xs-9">
+                Código de Producto
+            </div>
+            <div class="col-xs-3">Cantidad</div>
+        </div>
+        <div class="content"><!-- Insert quick order items here! --></div>
+        <div class="button-content">
+            <button>Agregar al carrito</button>
+        </div>
+    </div>
+</section>
+
+{{ 'api.jquery.js' | shopify_asset_url | script_tag }}
+<script type="text/javascript">
+
+
+var ShoppingCarBar = {
+
+    elem: null,
+    cart: null,
+    shoppingCarBarItems: null,
+    shoppingCarBarPrice: null,
+
+    updateCart: function () {
+        jQuery.getJSON('/cart.js', function(cart) {
+            ShoppingCarBar.shoppingCarBarItems.text("("+cart.item_count+") " + ( cart.item_count<2 ? "ITEM" : "ITEMS"));
+            ShoppingCarBar.shoppingCarBarPrice.text("$"+cart.total_price/100);
+        });
+    },
+
+    init: function () {
+        this.elem = $('.shopping-car-bar');
+        if (this.elem .length){
+            this.shoppingCarBarItems = this.elem.find('.shopping-car-bar-items');
+            this.shoppingCarBarPrice = this.elem.find('.shopping-car-bar-price');
+        }
+    }
+};
+
+var QuickOrder = {
+
+    quickOrderItems: null,
+    quickOrderButtom: null,
+    elem: null,
+
+    /**
+     * @type string    
+     */
+    searchUrl: '/search?type=product&q=',
+
+    /**
+     * Initialize Quick Order.
+     */
+    init: function () {
+        var _this = this;
+        elem = $('.quick-order-form');
+        if (elem){
+
+            // Create order items.
+            this.createOrderItems(10);
+
+            quickOrderItems = elem.find('.quick-order-item');
+            quickOrderButtom = elem.find('.button-content button');
+
+            quickOrderItems.each(function () {
+                var itemCode = $(this).find('.item-code');
+                itemCode.on('keyup', _this.onEnterText.bind(_this));
+            });
+
+            quickOrderButtom.on('click', function (){ QuickOrder.onSubmit(); });
+
+
+            this.setupGlobalShopify()
+
+            // Hide lists
+            var hideLists = function(ev) {
+                if (ev.type === 'click' || (ev.type === 'keyup' && ev.keyCode === 27)) {
+                    var self = this;
+                    var lists = document.querySelectorAll('.quick-order-item .results');
+
+                    [].forEach.call(lists, function(list) {
+                        self.clearList(list);
+                        self.showList(list, false);
+                    });
+                }
+            }
+
+            document.addEventListener('keyup', hideLists.bind(this));
+            document.addEventListener('click', hideLists.bind(this));
+        }
+    },
+
+    /**
+     * Add item to cart.
+     * @param {number} variantId
+     * @param {number} quantity
+     * @param {function} cb
+     */
+    addItem: function(variantId, quantity, cb) {
+        $.ajax({
+            url: '/cart/add.js',
+            data: { "id": variantId, "quantity": quantity },
+            async: false,
+            success: function (data) {
+                if (typeof cb === "function") {
+                    cb(data);
+                }
+            }
+        });
+    },
+
+    /**
+     * Clear list.
+     * @param {HTMLElement}
+     */
+    clearList: function (list) {
+        list.innerHTML = null;
+    },
+
+    /**
+     * Create order items to avoid have an bunch of code in the template.
+     * @param {number} howMany
+     */
+    createOrderItems: function (howMany) {
+        var container = document.querySelector('.quick-order-form .content'),
+            items = [], i = 0;
+
+        for (; i < howMany; i++) {
+            var options = "", j = 0;
+
+            // Options.
+            for (; j < 20; j++) {
+                options += '<option>' + (j + 1) + '</option>';
+            }
+
+            // Order item.
+            items.push(
+                '<div class="row quick-order-item">' +
+                    '<div class="col-xs-9">' +
+                        '<div class="relative">' +
+                            '<input type="text" class="item-code" placeholder="">' +
+                            '<span class="error-message text-danger"></span>' +
+                            '<input type="hidden" class="item-code-hidden">' +
+                            '<ul class="results hidden"></ul>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-xs-3">' +
+                        '<select type="text" class="quantity form-control">' + options + '</select>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        container.innerHTML = items.join('');
+    },
+
+    /**
+     * Find products ocurrences indicated by term.
+     * @param {string} term
+     * @param {function} callback
+     */
+    findOcurrences: function (term, callback) {
+        if (this.currentAjaxRequest != null) {
+            this.currentAjaxRequest.abort();
+        }
+
+        var self = this;
+        var searchUrl = '/search?type=product&q=' + term;
+
+        this.currentAjaxRequest = $.getJSON(searchUrl + '&view=json', function(response) {
+            if ('function' === typeof callback) {
+                callback(response);
+            }
+        });
+    },
+
+    /**
+     * Handles input enter text.
+     * @param {e} Event
+     */
+    onEnterText: function (e) {
+        var self = this,
+            el = e.target,
+            term = el.value,
+            list = el.parentNode.querySelector('.results'),
+            itemCodeHidden = el.parentNode.querySelector('.item-code-hidden');
+
+        // Always reset variant code.
+        itemCodeHidden.value = null;
+        
+
+        if (e.keyCode === 27) { return; }
+
+        if (term.length > 0) {
+            this.findOcurrences(term, function(data) {
+                self.showList(list, true);
+
+                if (data.results_count > 0) {                 
+                    self.showOcurrences(el, data, term);
+                } else {
+                    self.showNoOcurrences(el, data);
+                }
+            });
+        } else {
+            this.showList(list, false);
+        }
+    },
+
+    /**
+     * Handles submit event.
+     * @param {e} Event
+     */
+    onSubmit: function (e) {
+        var itemsEl = document.querySelectorAll('.quick-order-item');
+        var requests = [];
+        
+
+        // Create array of requests.
+        [].forEach.call(itemsEl, function(item) {
+            var variantId = item.querySelector('.item-code-hidden').value,
+                handle = item.querySelector('.item-code').value, 
+                quantity = item.querySelector('.form-control').value;
+
+            if (variantId !== '') {
+                requests.push({ 
+                    variantId: parseInt(variantId), 
+                    quantity: parseInt(quantity) || 0
+                });
+            }
+        });
+
+
+        if (requests.length > 0) {
+            Shopify.queue = requests;
+            Shopify.moveAlong();    
+        } else {
+            PopupSection.emptyOrder();
+        }
+    },
+
+    /**
+     * Setup global shopify object.
+     */
+    setupGlobalShopify: function () {
+        //
+        Shopify.moveAlong = function () {
+            if (Shopify.queue.length) {
+                var request = Shopify.queue.shift();
+                Shopify.addItem(request.variantId, request.quantity, Shopify.moveAlong);
+            } else {
+                document.location.href = '/cart';
+            }
+        }
+    },
+
+    /**
+     * Show or hide list.
+     * @param {HTMLElement} list
+     * @param {boolean} show
+     */
+    showList: function (list, show) {
+        if (show) {
+            $(list).removeClass('hidden');
+        } else {
+            $(list).addClass('hidden');
+        }
+    },
+
+    /**
+     * Show no ocurrences message.
+     * @param {HTMLElement} el
+     * @param {Object} data
+     */
+    showNoOcurrences: function (el, data) {
+        var searchResult = el.parentNode.querySelector('.results');
+
+        searchResult.innerHTML = '<li class="no-result"><span>No se encontraron coincidencias.</span></li>'
+    },
+
+    /**
+     * Show ocurrences in the correspond item.
+     * @param {HTMLElement} el
+     * @param {Object} data
+     * @param {string} term
+     */
+    showOcurrences: function (el, data, term) {
+        var searchResult = el.parentNode.querySelector('.results');
+        var items = [], i = 0;
+        var self = this;
+
+        for (; i < data.results.length; i++) {
+            let item = data.results[i];
+            let firstVariant = item.variants[0];
+
+            items.push(
+                '<li class="result-item" data-handle="' + item.handle + '" data-variant-id="' + firstVariant.id + '">' +
+                    '<div class="result-image">' +
+                        '<img src="' + item.thumbnail + '" alt="' + item.title + '">' +
+                    '</div>'+
+                    '<div class="result-text">' +
+                        '<div class="result-handle">' + item.handle + '</div>' +
+                        '<div class="result-title">' + item.title + '</div>' +
+                    '</div>' +
+                '</li>'
+            );
+        }
+
+        // Create link to go to search template.
+        items.push(
+            '<li class="result-item">' +
+                '<a href="/pages/search-results-page?q=' + term + '">Ver los ' + data.results_count + ' resultados.</a>' +
+            '</li>'
+        );
+
+        searchResult.innerHTML = items.join('');
+
+
+        // Attach handlers to each result item.
+        var itemsEl = searchResult.querySelectorAll('.result-item');
+        
+        [].forEach.call(itemsEl, function(item) {
+            item.addEventListener('click', function(ev) {
+                var handle = item.dataset['handle'];
+                var variantId = item.dataset['variantId'];
+
+                if (typeof handle === 'string') {
+                    el.value = handle;
+                    el.parentNode.querySelector('.item-code-hidden').value = variantId;
+
+                    self.showList(searchResult, false);
+                    self.clearList(searchResult);
+                }
+            });
+        });
+    }
+}; 
+
+var PopupSection = {
+    popup: null,
+    modalIcon: null,
+    modal: null,
+    
+    init: function () {
+        this.modalIcon = 
+            $('<div class="modal-view">'+
+                '<div class="picture"></div>'+
+                '<div class="message">El producto fue agregado a su carrito</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="white" href="/" >Continuar comprando</a>'+
+                        '<a class="blue" href="/cart" >Ir al check out</a>'+
+                    '</div>'+
+            '</div>');
+    },
+
+    emptyOrder: function() {
+        this.popup = new Popup();
+        this.modal = 
+            $('<div class="modal-view">'+
+                '<div class="message">Agrega productos a la orden.</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="blue" href="#" onclick="PopupSection.popup.hide()" style="float: none; margin: 0 auto;">Cerrar</a>'+
+                    '</div>'+
+            '</div>');
+        this.popup.display(this.modal);
+    },
+
+    ShowPopup: function() {
+        this.popup = new Popup();
+        this.popup.display(this.modalIcon);
+    },
+
+    ShowPopupMsg: function(msg) {
+        this.popup = new Popup();
+        this.modal= 
+            $('<div class="modal-view">'+
+                '<div class="message">'+msg+'</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="white"></a>'+
+                        '<a class="blue" href="#" onclick="PopupSection.popup.hide()">Close</a>'+
+                    '</div>'+
+            '</div>');
+        this.popup.display(this.modal);
+    }
+}
+
+jQuery(document).ready(function () {
+    PopupSection.init();
+    ShoppingCarBar.init();
+    QuickOrder.init();
+});
+
+
+</script>

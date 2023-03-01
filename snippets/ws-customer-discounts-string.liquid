@@ -1,0 +1,14 @@
+{% capture discountGroupId %}{{ customer.metafields.wholesaler_pro.discount_group_id }}{% endcapture %}
+{% capture discountGroup %}{{ shop.metafields.wholesaler_pro[discountGroupId] }}{% endcapture %}
+
+{% assign discountsArray = discountGroup | split: '"discounts":[' | last | split: ']' | first | split: '},{' %}
+
+{% assign customerDiscounts = '' %}
+{%- for discountString in discountsArray -%}
+  {% assign resourceId = discountString | split: '"id":' | last | split: ',' | first | strip  %}
+  {% assign resourceType = discountString | split: ':{' | last | split: '}' | first | split: '"type":"' | last | split: '"' | first %}
+  {% assign discountType = discountString | split: '},"type":"' | last | split: '"' | first %}
+  {% assign discountValue = discountString | split: '},"type":"' | last | split: '"value":"' | last | split: '"' | first %}
+  {% capture customerDiscounts %}{{customerDiscounts | append: resourceType | append: resourceId | append: ':' | append: discountValue | append: ':' | append: discountType | append: '|'}}{% endcapture %}
+{%- endfor -%}
+{{- customerDiscounts -}}

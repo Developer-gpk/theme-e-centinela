@@ -1,0 +1,14 @@
+{% if shop.metafields.elspl['enabled'] == '1' %}
+<script>
+    if(typeof Els === 'undefined'){
+        var Els = {};
+    }
+    Els.pl = {
+        params: {
+            id: 'bd2f5dba4883cf8ed7c3ea475c3ba6bc',
+            money_format: '{{shop.money_format}}'
+        }
+    };
+</script>
+<script src="https://s3.amazonaws.com/els-apps/product-lookup/settings/bd2f5dba4883cf8ed7c3ea475c3ba6bc.js" defer></script>
+{% endif %}

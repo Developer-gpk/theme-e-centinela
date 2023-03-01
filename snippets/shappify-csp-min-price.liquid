@@ -1,0 +1,11 @@
+{% include 'saw_variant_variables' %}
+{% assign shappify_min = shappify-min-price.price_max %}
+{% for variant in shappify-min-price.variants %}
+    {% if variant.metafields.shappify_csp.csp_isparent == "1" and variant.metafields.shappify_csp.csp_tag == tag %}
+        {% if WCVariantPrice < shappify_min %}
+            {% assign shappify_min = WCVariantPrice %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+{{ shappify_min | money }}

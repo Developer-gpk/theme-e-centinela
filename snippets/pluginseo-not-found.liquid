@@ -1,0 +1,15 @@
+{%- if rootTemplate == '404' -%}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var formData = new FormData();
+
+      formData.set('user_id', '{{ licensedTo }}');
+      formData.set('url', window.location.href);
+
+      fetch('{{ apiUrl | append: '/broken_links' }}', {
+        method: 'POST',
+        body: formData
+      });
+    });
+  </script>
+{%- endif -%}

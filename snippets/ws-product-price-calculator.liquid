@@ -1,0 +1,50 @@
+{% include 'saw_product_variables' %}
+{% assign debugOn = false %}
+{% include 'ws-pro-logger', debugOn: debugOn, message: '== Product Price Calculator ==' %}
+{% include 'ws-pro-logger', debugOn: debugOn, label: 'Title:', message: product.title %}
+{% include 'ws-pro-logger', debugOn: debugOn, label: 'Normal Price:', message: WCProductPrice %}
+{% unless customerDiscounts %}
+  {% capture customerDiscounts %}{%- include 'ws-customer-discounts-string' -%}{% endcapture %}
+{% endunless %}
+{% assign discounts = customerDiscounts | split: '|' %}
+{% assign productPrice = WCProductPrice %}
+{% assign finalPrice = productPrice %}
+{% for discount in discounts %}
+  {% include 'ws-pro-logger', debugOn: debugOn, message: discount %}
+  {% assign discountTokens = discount | split: ':' %}
+  {% assign discountId = discountTokens[0] | strip %}
+  {% assign discountValue = discountTokens[1] %}
+  {% assign discountType = discountTokens[2] %}
+  {% if discountId contains 'variant' %}
+    {% assign discountResource = 'variant' %}
+  {% else %}
+    {% assign discountResource = 'collection' %}
+  {% endif %}
+  {% case discountResource %}
+  {% when 'collection' %}
+    {% for collection in collections %}
+      {% assign collectionId = 'collection' | append: collection.id | strip %}
+      {% if discountId == collectionId %}
+        {% case discountType %}
+        {% when 'percentage' %}
+      {% capture discountedPrice %}{% include 'ws-apply-percentage-discount', discountValue: discountValue, finalPrice: finalPrice, productPrice: productPrice %}{% endcapture %}
+      {% assign finalPrice = discountedPrice | strip | plus: 0 %}
+        {% endcase %}
+      {% endif %}
+    {% endfor %}
+  {% when 'variant' %}
+    {% assign variantDiscountId = 'variant' | append: variantId | strip %}
+    {% if discountId == variantDiscountId %}
+      {% case discountType %}
+      {% when 'fixed' %}
+        {% capture discountedPrice %}{% include 'ws-apply-fixed-discount', discountValue: discountValue, finalPrice: finalPrice, productPrice: productPrice %}{% endcapture %}
+        {% assign finalPrice = discountedPrice | strip | plus: 0 %}
+      {% when 'percentage' %}
+        {% capture discountedPrice %}{% include 'ws-apply-percentage-discount', discountValue: discountValue, finalPrice: finalPrice, productPrice: productPrice %}{% endcapture %}
+        {% assign finalPrice = discountedPrice | strip | plus: 0 %}
+      {% endcase %}
+  {% endif %}
+  {% endcase %}
+{% endfor %}
+{% include 'ws-pro-logger', debugOn: debugOn, label: 'Final Price:', message: finalPrice %}
+{{finalPrice}}

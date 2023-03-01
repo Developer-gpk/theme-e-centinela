@@ -1,0 +1,28 @@
+{% comment %}
+  version: 1.7.7
+{% endcomment %}
+
+{%- comment -%}
+  ----------------------------------------------------------------------------------
+   Plug in SEO Plus for Shopify
+
+   Copyright (c) 2020 SureSwift Capital, Inc.
+
+   This file is subject to the license at https://www.pluginseo.com/eula
+  ----------------------------------------------------------------------------------
+{%- endcomment -%}
+
+{%- assign licensedTo = '09130e40-9087-4d0e-a817-35932c4ffe57' -%}
+{%- assign apiUrl = 'https://api.pluginseo.com' -%}
+{%- assign pluginseoVerbose = false -%}
+{%- assign pageUnderscoreTitle = 'page' | append: '_' | append: 'title' -%}
+{%- assign pageUnderscoreDescription = 'page' | append: '_' | append: 'description' -%}
+{%- assign rootTemplate = template | split: '.' | first -%}
+
+{%- include 'pluginseo-langify' -%}
+{%- include 'pluginseo-page-title' -%}
+{%- include 'pluginseo-meta-description' -%}
+{%- include 'pluginseo-structured-data' -%}
+{%- include 'pluginseo-not-found' -%}
+
+<meta name="pluginseo" content="Plug in SEO Plus" data-ptf="{{- pTF -}}" data-mdf="{{- mDF -}}" />

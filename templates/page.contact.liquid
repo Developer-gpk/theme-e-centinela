@@ -1,0 +1,80 @@
+{% layout 'content2' %}
+{% layout 'content' %}
+ {% comment %}
+Re-use the 'rte' class wherever you output content that was added by a merchant using
+the Rich Text Editor ( 'rte' stands for rich text editor ).
+Style all HTML elements in that content the same way across the board.
+Use the 'rte' class in your CSS to help maintain that consistency.
+Example: the h2 element should have the same size and color in:
+- product descriptions
+- collection descriptions
+- 'page' pages' content
+- blog post
+{% endcomment %}
+
+<h1>
+Resultados de la búsqueda</h1>
+<div >
+  {{ page.content }}
+</div><!-- Block Content -->
+
+<section class="block contact" id="contacto">
+    <div class="holder">
+        <div class="container-fluid">
+            <div class="layout-master mobile-navigation ">
+                {% include 'site-nav' %}
+            </div>
+            <div class="header">
+                <h2 class="title">{{ page.title }}</h2>
+            </div>
+            <div class="content">
+                <!-- Contact Form -->
+                {% form 'contact' %}
+
+				{% if form.posted_successfully? %}
+				<div class="success text-center">
+				  <div class="alert alert-success alert-dismissible fade in" role="alert"> 
+				  	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button> 
+			  		Mensaje enviado exitosamente
+		  		   </div>
+				</div>
+				{% endif %}
+
+				{% if form.errors %}
+				<div class="alert alert-danger alert-dismissible fade in">
+				  <!-- {{ form.errors.size }} or {{ form.errors | size }} -->
+		    	  <p>Your contact form has {{ form.errors | size | pluralize: "an error", "a few errors" }}. Ocurrió un error, favor de volver a intentarlo:</p>
+					{% for field in form.errors %}
+					  <p>The {{ field | capitalize | replace: 'Body', 'Message' }} field {{ form.errors.messages[field] }}.</p>
+					{% endfor %}
+				</div>
+				{% endif %}
+
+                <div class="contact-form">
+                    <div class="row-form">
+                        <div class="half">
+                            <input required id="contactFormName" name="contact[name]" placeholder="Nombre" type="text">
+                        </div>
+                        <div class="half">
+                            <input name="contact[Order Number]" placeholder="Número de Orden" type="text">
+                        </div>
+                    </div>
+                    <div class="row-form">
+                        <div class="half">
+                            <!-- <input required id="contactFormEmail" name="contact[email]" placeholder="Email" type="text"> -->
+                            <input type="email" id="email" name="contact[email]" value="" placeholder="Email" required="required" />
+                        </div>
+                        <div class="half">
+                            <input required id="contactFormTelephone" name="contact[phone]" placeholder="Teléfono" type="telephone">
+                        </div>
+                    </div>
+                    <textarea id="contactFormMessage" name="contact[body]" placeholder="Mensaje"></textarea>
+
+                    <input type="submit" id="contactFormSubmit" value="Enviar">
+                </div>
+  				{% endform %}
+            </div>
+        </div>
+    </div>                 
+</section>
+

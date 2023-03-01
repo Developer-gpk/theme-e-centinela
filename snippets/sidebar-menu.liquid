@@ -1,0 +1,45 @@
+<div role="navigation" class="category-menu">
+    <div class="title">{{ linklists.shopping-categories.title }}</div>
+    <div class="category-content">
+    {% for link in linklists.shopping-categories.links %}
+        {% assign child_list_handle = link.title | handle %}
+        {% if linklists[child_list_handle] and linklists[child_list_handle].links.size > 0 %}
+                <a class="category-item" id="{{link.title | handle }}" href="{{link.url}}">
+                    <div class="category-title">{{ link.title }}</div>
+                <div class="sub-category-content">
+                {% for child_link in linklists[child_list_handle].links %}
+                    {% assign grand_child_list_handle = child_link.title | handle %}
+                    {% if linklists[grand_child_list_handle] and linklists[grand_child_list_handle].links.size > 0 %}
+                    <a class="sub-category-item" id="{{ child_link.title | handle }}" href="{{link.url}}"><!--a-->
+                        <div class="sub-category-title">
+                            {{ child_link.title }}
+                            <span><img src="{{ 'icon-down.png' | asset_url }}" alt="show items"/></span>
+                        </div>
+                        <div class="sub-category-content">
+                            {% for grand_child_link in linklists[grand_child_list_handle].links %}
+                            <a class="sub-category-item" id="{{link.title | handle }}" href="{{link.url}}">
+                                <div class="sub-category-title">{{grand_child_link.title}}</div>
+                                <div class="sub-category-content"></div>
+                            </a>
+                            {% endfor %}  
+                        </div>
+                    </a><!--a-->
+                    {% else %}
+                    <a class="sub-category-item" id="{{ child_link.title | handle }}" href="{{link.url}}"><!--a-->
+                        <div class="sub-category-title">
+                            {{ child_link.title }}
+                            <span><img src="{{ 'icon-down.png' | asset_url }}" alt="show items"/></span>
+                        </div>
+                    </a><!--a-->
+                    {% endif %}
+                {% endfor %}        
+                </div>
+                </a> 
+            {% else %}
+            <a class="category-item" id="{{link.title | handle }}" href="{{link.url}}">
+                <div class="category-title">{{ link.title }}</div>
+            </a>
+        {% endif %}
+    {% endfor %}
+    </div>
+</div>

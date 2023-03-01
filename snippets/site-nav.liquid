@@ -1,0 +1,7 @@
+{% for link in linklists.main-menu.links %}
+<div class="category-menu visible-xs">  
+    <div class="title">
+        {{ link.title | link_to: link.url }}
+    </div>
+</div>
+{% endfor %}

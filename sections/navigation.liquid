@@ -1,0 +1,40 @@
+<div class="holder">
+    <div class="container-fluid">
+        <div class="message">{{section.settings.message}}</div>
+        <!-- Navigation List -->
+        <ul class="list hidden-xs">
+        {% for link in linklists.navigation.links %}
+            <li>{{ link.title | link_to: link.url }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+ <script type="text/javascript">
+    //Add atribute blank to PDF catalogue//
+    $(document).ready(function() {
+        var nav = $('.list.hidden-xs');
+        var opt = nav.find('li a[href*=pdf]');
+        opt.attr('target','_blank');
+    });
+ </script>
+{% schema %}
+  {
+    "name": "Header",
+    "class": "navigation",
+    "settings": [
+        {
+            "type": "header",
+            "content": "Configuracion"
+        },
+        {
+            "id": "message",
+            "type": "text",
+            "label": "Title",
+            "default": "Free shipping on orders over $100"
+        }
+    ]
+  }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}

@@ -1,0 +1,42 @@
+{% unless template == 'index' or template == 'cart' or template == 'list-collections'%}
+<!-- Aqui estoy -->
+<nav class="hidden-xs">
+  <ul class="breadcrumb" role="navigation" aria-label="breadcrumbs">
+  {% comment %}<li><a href="/" title="Home">/</a></li>{% endcomment %}
+  {% if template contains 'page' %}
+    <li><span>{{ page.title }}</span></li>
+  {% elsif template contains 'product' %}
+    <!-- {% if collection.url %}
+      <li>{{ collection.title | link_to: collection.url }}</li>
+    {% endif %} -->
+    {% if collection %}
+      {% assign current_collection = collection %}
+    {% else %}
+      {% assign current_collection = product.collections.first %}
+    {% endif %}
+    <li>{{ current_collection.title | link_to: current_collection.url }}</li>
+    <li><span>{{ product.title }}</span></li>
+  {% elsif template contains 'collection' and collection.handle %}
+    {% if current_tags %}
+      {% capture url %}/collections/{{ collection.handle }}{% endcapture %}
+      <li>{{ collection.title | link_to: url }}</li>
+      <li><span>{{ current_tags | join: " + " }}</span></li>
+    {% else %}
+      <li><span>{{ collection.title }}</span></li>
+    {% endif %}
+  {% elsif template == 'blog' %}
+    {% if current_tags %}
+      <li>{{ blog.title | link_to: blog.url }}</li>
+      <li><span>{{ current_tags | join: " + " }}</span></li>
+    {% else %}
+    <li><span>{{ blog.title }}</span></li>
+    {% endif %}
+  {% elsif template == 'article' %}
+    <li>{{ blog.title | link_to: blog.url }}</li>
+    <li><span>{{ article.title }}</span></li>
+  {% else %}
+   <li><span>{{ page_title }}</span></li>
+  {% endif %}
+  </ul>
+</nav>
+{% endunless %}

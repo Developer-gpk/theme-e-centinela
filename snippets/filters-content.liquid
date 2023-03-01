@@ -1,0 +1,23 @@
+{% if collection.all_tags.size > 0 %}
+<section class="filters-content visible-xs">
+    <div class="layout-left">
+        {{collection.title}}
+    </div>
+  {% include 'breadcrumbs' %}
+    <div class="layout-right">
+        <div class="title">Filters</div>
+        <div class="filter-content">
+          {% for tag in collection.tags %}
+        
+            {% assign mystring = tag | handleize %}
+            {% unless current_tags contains tag %}
+            <div class="filter-item"><a  href="/collections/{{collection.handle}}/{{mystring}}">{{ tag }}</a></div>
+            {% endunless %}
+          {% endfor %} 
+        </div>
+    </div>
+    <div class="layout-bottom">
+       {{ current_tags }}
+    </div>
+</section>
+{% endif %}

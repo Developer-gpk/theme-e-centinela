@@ -1,0 +1,79 @@
+{
+  "current": {
+    "homepage_collection": "",
+    "new_products": "newest-products",
+    "top_products": "categorias-principales-de-productos",
+    "recently_viewed": "productos-recientemente-visitados",
+    "checkout_header_image": "shopify:\/\/shop_images\/online-shopping.jpg",
+    "checkout_logo_image": "shopify:\/\/shop_images\/online-shopping.jpg",
+    "checkout_logo_position": "left",
+    "checkout_logo_size": "medium",
+    "checkout_body_background_image": "",
+    "checkout_body_background_color": "#fff",
+    "checkout_input_background_color_mode": "white",
+    "checkout_sidebar_background_image": "",
+    "checkout_sidebar_background_color": "#fafafa",
+    "checkout_heading_font": "Helvetica Neue",
+    "checkout_body_font": "Helvetica Neue",
+    "checkout_accent_color": "#1990c6",
+    "checkout_button_color": "#1990c6",
+    "checkout_error_color": "#ff6d6d",
+    "customer_layout": "theme",
+    "background_color": "#e6ebeb",
+    "text_color": "#555555",
+    "link_color": "#b5792b",
+    "facebook_url": "https:\/\/www.facebook.com\/shopify",
+    "twitter_url": "https:\/\/twitter.com\/shopify",
+    "pinterest_url": "http:\/\/pinterest.com\/shopify\/",
+    "instagram_url": "http:\/\/instagram.com\/shopify",
+    "vimeo_url": "http:\/\/vimeo.com\/shopify",
+    "youtube_url": "https:\/\/www.youtube.com\/user\/shopify",
+    "social_icons_style": "",
+    "use_logo": false,
+    "base_font_size": "16px",
+    "base_font_family": "'Source Sans Pro', sans-serif",
+    "featured_blog": "news",
+    "homepage_page": "frontpage",
+    "sections": {
+      "navigation": {
+        "type": "navigation",
+        "settings": {
+          "message": "Envío gratuito en órdenes mayores a $300 USD (aplica solo a BC BCS y partial de Sonora)"
+        }
+      },
+      "related-products": {
+        "type": "related-products",
+        "settings": {
+          "show_related_products": true,
+          "related_title": "Other fine products",
+          "related_grid_num": "6"
+        }
+      }
+    },
+    "content_for_index": []
+  },
+  "presets": {
+    "Slate": {
+      "customer_layout": "theme",
+      "background_color": "#e6ebeb",
+      "text_color": "#555555",
+      "link_color": "#b5792b",
+      "facebook_url": "https:\/\/www.facebook.com\/shopify",
+      "twitter_url": "https:\/\/twitter.com\/shopify",
+      "pinterest_url": "http:\/\/pinterest.com\/shopify\/",
+      "instagram_url": "http:\/\/instagram.com\/shopify",
+      "vimeo_url": "http:\/\/vimeo.com\/shopify",
+      "youtube_url": "https:\/\/www.youtube.com\/user\/shopify",
+      "social_icons_style": "",
+      "use_logo": false,
+      "base_font_size": "16px",
+      "base_font_family": "'Source Sans Pro', sans-serif",
+      "featured_blog": "news",
+      "homepage_page": "frontpage",
+      "homepage_collection": "frontpage",
+      "new_products": "new-products",
+      "top_products": "top-products",
+      "recently_viewed": "recently-viewed"
+    }
+  }
+}

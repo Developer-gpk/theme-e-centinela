@@ -1,0 +1,237 @@
+
+{% comment %} Added by SolverCircle for Wholesale Simplified {% endcomment %}
+{% comment %} Please do not modify this file. {% endcomment %}
+
+{% if sc-ws == 'discount' %}
+	{% assign sc_ws_product = product %}
+	{% assign sc_ws_variant = product.selected_or_first_available_variant %}
+	{% assign sc_ws_variant_price = nil %}
+	{% assign sc_ws_highest_discount_rule = null %}
+	{% assign sc_ws_highest_discount_logic = null %}
+	<!-- customer -->
+
+	{% if customer %}
+
+		{% assign WsRules = '' %}
+		{% assign WsLogics = '' %}
+		{% assign pcollections = product.collections %}
+
+		<!-- get rules for this customer -->
+		{% for tag in customer.tags %}
+			{% if shop.metafields.WholesaleSimplified[tag] != null %}
+				{% assign rule = shop.metafields.WholesaleSimplified[tag] | split:',' %}
+
+
+				<!-- rule iteration -->
+				{% for value in rule%}
+					{% assign match_rule = false %}
+					{% if forloop.index0 == 0 %}
+						<!-- this index for discount rate  -->
+          			{% else %}
+						<!-- checking rules collections with product collections -->
+            			{% for col in pcollections %}
+							{% assign col_id = col.id | append: '' %}
+							{% if col_id == value %}
+								{% assign match_rule = true %}
+              				{% endif %}
+						{% endfor %}
+						<!-- end: checking rules collections with product collections -->
+					{% endif %}
+					{% if match_rule == true %}
+						{% if WsRules != '' %}
+							{% assign WsRules = WsRules | append: '|' %}
+						{% endif %}
+						{% assign WsRules = WsRules | append: shop.metafields.WholesaleSimplified[tag] %}
+
+                        {% if WsLogics != '' %}
+	                        {% assign WsLogics = WsLogics | append: '|' %}
+                        {% endif %}
+						{% assign tag_logic = tag | append: '-logic' %}
+
+                        {% assign WsLogics = WsLogics | append: shop.metafields.WholesaleSimplified[tag_logic] %}
+
+					{% endif %}
+				{% endfor %}
+				<!-- end: rule iteration -->
+			{% endif %}
+		{% endfor %}
+		<!-- end: get rules for this customer -->
+
+		<!-- rules apply -->
+		{% if WsRules != "" %}
+		
+			{% if sc_ws_variant == null %}
+				{% assign sc_ws_variant = product.selected_or_first_available_variant %}
+			{% endif %}
+
+			{% assign sc_ws_variant_price = sc_ws_variant.price %}
+			{% assign sc_ws_discount_rules =  WsRules | split:'|'  %}
+			{% assign sc_ws_discount_logics =  WsLogics | split:'|'  %}
+			{% assign sc_ws_highest_discount_rate = -1 %}
+			{% assign sc_ws_highest_discount_rule = -1 %}
+			{% assign sc_ws_highest_discount_logic = -1 %}
+
+			{% for sc_ws_discount_rule_str in sc_ws_discount_rules  %}
+
+				{% assign sc_ws_discount_rule =  sc_ws_discount_rule_str | split:','  %}
+				{% assign sc_ws_discount_rule_rate = sc_ws_discount_rule[0] | plus:0 %}
+
+				{% if sc_ws_discount_rule_rate > sc_ws_highest_discount_rate %}
+					{% assign sc_ws_highest_discount_rate = sc_ws_discount_rule_rate %}
+					{% assign sc_ws_highest_discount_rule = sc_ws_discount_rule %}
+					{% assign sc_ws_highest_discount_logic = sc_ws_discount_logics[forloop.index0] %}
+				{% endif %}
+			{% endfor %}
+
+			{% assign sc_ws_discount_price = sc_ws_variant_price| times: sc_ws_highest_discount_rule[0] | times: 0.01 %}
+			{% assign sc_ws_sale_price = sc_ws_variant_price| minus: sc_ws_discount_price %}
+
+			{% if sc_ws_quantity != null %}
+				{% assign sc_ws_variant_total_price = sc_ws_variant_price | times:sc_ws_quantity %}
+				{% assign sc_ws_discount_total_price = sc_ws_discount_price | times:sc_ws_quantity %}
+				{% assign sc_ws_sale_total_price = sc_ws_sale_price | times:sc_ws_quantity %}
+
+				{% if sc_ws_total_discount != null %}
+					{% assign sc_ws_total_sale = sc_ws_total_sale | plus: sc_ws_sale_total_price %}
+					{% assign sc_ws_total_discount = sc_ws_total_discount | plus: sc_ws_discount_total_price %}
+				{% endif %}
+			{% endif %}
+                {% else %}
+                    {% assign sc_ws_item_price = sc_ws_variant.price %}
+                    {% assign sc_ws_line_price = sc_ws_item_price | times:sc_ws_quantity %}
+                    {% assign sc_ws_total_sale = sc_ws_total_sale | plus: sc_ws_line_price  %}
+		{% endif %}
+		<!-- end: rules apply -->
+
+	{% endif %} <!-- end:customer -->
+    <script>
+      if(typeof SCWS != "object"){
+        var SCWS = new Object();
+      }
+      SCWS.discount_rule_{{product.id}} = {{sc_ws_highest_discount_rule | json}};
+      {% if sc_ws_highest_discount_logic == null %}
+      	SCWS.discount_logic_{{product.id}} = null;
+      {% else %}
+      SCWS.discount_logic_{{product.id}} = {{sc_ws_highest_discount_logic}};
+      {% endif %}
+      {% comment %}
+      /*
+           var sc_ws_product_discount_rule_{{product.id}} =  {{sc_ws_highest_discount_rule | json}};
+           var sc_ws_product_discount_logic_{{product.id}} = {{sc_ws_highest_discount_logic }};
+            */
+      {% endcomment %}
+    </script>
+{% endif %}<!-- end:discount -->
+
+{% if sc-ws == 'show-product-discount' %}
+    <span class=" sc-ws-discount-price-{{ product.id }}" >
+      {{ sc_ws_sale_price | money }}
+    </span>
+    <span class="sc-ws-variant-price-{{ product.id }}">
+      {{ sc_ws_variant_price | money }}
+    </span>
+{% endif %}
+
+{% if sc-ws == 'show-cart-item-discount' %}
+		{{ sc_ws_sale_price | money_without_trailing_zeros }}
+		<del>{{ sc_ws_variant_price | money_without_trailing_zeros  }}</del>
+{% endif %}
+{% if sc-ws == 'show-cart-item-total-discount' %}
+	{{ sc_ws_sale_total_price | money_without_trailing_zeros }}
+	<del>{{ sc_ws_variant_total_price | money_without_trailing_zeros  }}</del>
+{% endif %}
+{% if sc-ws == 'show-cart-total-discount' %}
+	{{ sc_ws_total_sale | money_without_trailing_zeros }}
+	<del>{{ cart.total_price | money_without_trailing_zeros }}</del>
+{% endif %}
+
+{% if sc-ws == 'show-notice' %}
+	{% if sc_ws_qty != "" %}
+	<p>Buy at least {{sc_ws_qty}} to get discount</p>
+	{% endif %}
+	{% if sc_ws_qty != "" %}
+	<p>Buy more than {{sc_ws_price}} to get discount</p>
+	{% endif %}
+{% endif %}
+
+{% if sc-ws == 'product-notice' %}
+<div class="sc-ws-notice sc-ws-msg" pid="{{ product.id }}" ptitle={{product.title | json}}></div>
+{% endif %}
+
+{% if sc-ws == 'cart-notice' %}
+<div class="sc-ws-cart-notice">
+
+</div>
+{% endif %}
+
+{% if sc-ws == 'sc-ws-script' %}
+  {% if customer %}
+    <script type="text/javascript">
+      if(typeof SCWS != "object"){
+      	var SCWS = new Object();
+      }
+      SCWS.cart = {{ cart | json }};
+						SCWS.cartSelector = 'form[action^="/cart"]';
+						SCWS.checkoutSelector = 'form[action^="/cart"] input[name="checkout"]';
+      SCWS.format_money = function(cents, format = {{ shop.money_format | json}}) {
+        
+  		if (typeof cents == 'string') { cents = cents.replace('.',''); }
+  		var value = '';
+        var placeholderRegex = /\{\{\s*(\w+)\s*\}\}/;
+  		var formatString = (format || this.money_format);
+
+  		function defaultOption(opt, def) {
+     		return (typeof opt == 'undefined' ? def : opt);
+  		}
+
+  		function formatWithDelimiters(number, precision, thousands, decimal) {
+    		precision = defaultOption(precision, 2);
+    		thousands = defaultOption(thousands, ',');
+    		decimal   = defaultOption(decimal, '.');
+
+    		if (isNaN(number) || number == null) { return 0; }
+
+    		number = (number/100.0).toFixed(precision);
+
+    		var parts   = number.split('.'),
+        	dollars = parts[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + thousands),
+        	cents   = parts[1] ? (decimal + parts[1]) : '';
+
+    		return dollars + cents;
+  		}
+
+  		switch(formatString.match(placeholderRegex)[1]) {
+    		case 'amount':
+      			value = formatWithDelimiters(cents, 2);
+      			break;
+    		case 'amount_no_decimals':
+      			value = formatWithDelimiters(cents, 0);
+      			break;
+    		case 'amount_with_comma_separator':
+      			value = formatWithDelimiters(cents, 2, '.', ',');
+      			break;
+    		case 'amount_no_decimals_with_comma_separator':
+      			value = formatWithDelimiters(cents, 0, '.', ',');
+      			break;
+          	case 'amount_no_decimals_with_space_separator':
+            	value = formatWithDelimiters(cents, 0, ' ');
+                break;
+  		}
+
+  		return formatString.replace(placeholderRegex, value);
+	}
+   </script>
+		<script type="text/javascript" src="/apps/wholesale-simplified/scripts/js/base64.js"></script>
+   <script type="text/javascript" src="/apps/wholesale-simplified/scripts/js/wholesale-simplified-v2.min.js"></script>
+   
+	{{ 'sc-ws-02022017-js.js' | asset_url | script_tag  }}
+	<style>
+      .sc-ws-msg{
+        display:inline-block;
+        margin:5px 0;
+      }
+      {{ shop.metafields.WholesaleSimplified.ws_custom_css }}
+	</style>
+  {% endif %}
+{% endif %}
+

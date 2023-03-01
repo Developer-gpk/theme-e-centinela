@@ -1,0 +1,8 @@
+{% capture discountGroupId %}{{ customer.metafields.wholesaler_pro.discount_group_id }}{% endcapture %}
+{% capture discountGroup %}{{ shop.metafields.wholesaler_pro[discountGroupId] }}{% endcapture %}
+
+{%- capture json_error -%}
+    {%- include 'json_decode' jd__namespace:'discount_group_minimum' jd__data:discountGroup -%}
+{%- endcapture -%}
+{%- capture minimum_spent_amount -%}{%- include 'jd__function' with 'echo|discount_group_minimum.minimum_spent_amount' -%}{%- endcapture -%}
+{%- assign minimumCartAmount = minimum_spent_amount | strip -%}

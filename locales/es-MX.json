@@ -1,0 +1,18 @@
+{
+  "shopify": {
+    "checkout": {
+      "general": {
+        "edit_shipping_address": "Datos de Facturación",
+        "edit_billing_address": "Datos de Envío"
+      },
+      "contact": {
+        "optional_company_label": "Empresa (opcional)"
+      }
+    },
+    "notices": {
+      "customer": {
+        "password_reset_error": "Error"
+      }
+    }
+  }
+}

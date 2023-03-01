@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="https://www.qetail.com/apps/qecustomanimator/assets/css/hover.css" type="text/css" />
+<link rel="stylesheet" type="text/css" href="https://csshake.surge.sh/csshake.min.css">
+<link rel="stylesheet" href="{{ 'animate.min.css' | asset_url }}">
+          
+<script type="text/javascript">
+if(typeof jQuery == 'undefined'){
+document.write('<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></'+'script>');
+}
+</script>
+          <script>
+           $.post(
+              'https://www.qetail.com/apps/qecustomanimator/Auth/getclass',
+              {
+                shop_url:"{{ shop.url }}"
+           }).done(function(response){
+              data = JSON.parse(response);
+                
+                 $dropp=data[0].dropp;
+                 $checkenable=data[0].checkenable;  
+                 $custom_color=data[0].custom_color;
+                 $custom_text_color=data[0].custom_text_color;
+             	 $custom_border_color = data[0].custom_border_color;
+                 $textname=data[0].textname;
+                 $droptrigger=data[0].droptrigger;  
+                 $dp=$dropp + ' animated'
+                 if($checkenable == "on")
+                 {
+                
+                    var custom = $("form button[name=add]").attr('id');
+                    var custom = "custom1";
+                    $("form button[name=add]").attr('id', 'custom1');
+                    $('#custom1').css({'background-color':$custom_color,'border-color': $custom_border_color }); 
+                    $('#custom1').css({'color':$custom_text_color}); 
+                    setInterval(function(){$('#custom1').toggleClass($dp)}, $droptrigger);
+                    if($textname == ""){$('#custom1').html("ADD TO CART");}else{
+                    $('#custom1').html($textname);
+                    
+              }
+            
+             }
+             
+             
+             });
+         
+              
+          
+      </script>

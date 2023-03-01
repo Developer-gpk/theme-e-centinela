@@ -1,0 +1,437 @@
+{% include 'saw_product_variables' %}
+{% if section.settings.show_related_products == true %}
+<div class="product-template__container page-width" itemscope itemtype="http://schema.org/Product" id="ProductSection-{{ section.id }}" data-section-id="{{ section.id }}" data-section-type="product" data-enable-history-state="true">
+
+{% comment %}
+  Number of related items per row,
+  and number of rows.
+{% endcomment %}
+
+{% assign number_of_related_products_per_row = section.settings.related_grid_num %}
+
+{% comment %}
+  Heading.
+  Leave blank if you don't need one.
+{% endcomment %}
+
+{% assign heading = section.settings.related_title %}
+
+{% comment %}
+  Set either or both to true, if you want
+  to limit yourself to items with same vendor, and/or type.
+{% endcomment %}
+
+{% assign same_vendor = false %}
+{% assign same_type = false %}
+
+{% comment %}
+  Collections to ignore.
+  Never pick related items from those.
+{% endcomment %}
+
+{% assign exclusions = 'frontpage,all' | split: ',' %}
+
+{% comment %}
+  Looking for a relevant collection.
+{% endcomment %}
+
+{% if product.metafields.c_f['Related Products'] %}
+  {% assign collection = collections[product.metafields.c_f['Related Products']] %}
+{% endif %}
+
+{% assign found_a_collection = false %}
+{% if collection and collection.all_products_count > 1 %}
+  {% unless exclusions contains collection.handle %}
+    {% assign found_a_collection = true %}
+  {% endunless %}
+{% endif %}
+{% unless found_a_collection %}
+  {% for c in product.collections %}
+    {% unless exclusions contains c.handle or c.all_products_count < 2 %}
+      {% assign found_a_collection = true %}
+      {% assign collection = c %}
+      {% break %}
+    {% endunless %}
+  {% endfor %}
+{% endunless %}
+
+{% comment %}
+  If we have a relevant collection.
+{% endcomment %}
+
+{% if found_a_collection %}
+
+  {% assign counter = 0 %}
+  {% assign break_at = number_of_related_products_per_row %}
+  {% assign current_product = product %}
+
+  {% capture related_items %}
+    {% for product in collection.products %}
+      {% unless product.handle == current_product.handle %}
+        {% unless same_vendor and current_product.vendor != product.vendor %}
+          {% unless same_type and current_product.type != product.type %}
+              {% assign on_sale = false %}
+              {% if WCProductComparePrice > WCProductPrice %}
+                {% assign on_sale = true %}
+              {% endif %}
+
+              <div class="layout-row {{ product-grid-item }}{% unless product.available %} sold-out{% endunless %}{% if on_sale %} on-sale{% endif %}{% if product-grid-item == 'four-per-row' %}{% cycle 'last': '', '', '', ' last-in-row' %}{% elsif product-grid-item == 'three-per-row' %}{% cycle 'last': '', '', ' last-in-row' %}{% endif %}">
+                  <div class="layout-cell">
+                      <a class="part-number" href="{{ product.url | within: collection }}">
+                          <img src="{{ product | img_url: '67x67', crop: 'center' }}" alt="{{ product.featured_image.alt | escape }}" />
+                          <div class="code">{{product.url}}</div>
+                      </a>
+                  </div>
+                
+                  <div class="layout-cell hidden-xs">
+                      <div class="description">{{product.description}}</div>
+                  </div>
+                  <div class="layout-cell hidden-xs">
+                      <div class="supplier">
+                          {{ product.vendor }}
+                      </div>
+                  </div>
+                  <div class="layout-cell">
+                      <div class="price">
+                          <div class="line">
+                              <div class="left hidden">1</div>
+                              <div class="right">{{ WCProductPrice | money }}</div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="layout-cell">
+                      <div class="quantities">
+                          <!-- <input type="number" name="myInput" value="0" min="0" max="100" step="1"> -->
+                          <input type="number" min="0" name="quantity" value = "0" id="{{product.variants.first.id}}" class="quantity" />
+                      </div>
+                  </div>
+                  <div class="layout-cell hidden-xs">
+                      {% assign product_qty = 0 %}
+                      {% for variant in product.variants %}
+                        {% if variant.inventory_quantity > 0 %}
+                          {% assign product_qty = product_qty | plus: variant.inventory_quantity %}
+                        {% endif %}
+                      {% endfor %}
+                      <div class="availability">{{ product_qty }} en existencia</div>
+                  </div>
+                  <div class="layout-cell hidden">
+                      <div class="description">{{product.description}}</div>
+                      <div class="content-buttom">
+                          <button>Add to cart</button>
+                      </div>
+                  </div>
+              </div>
+   {% assign counter = counter | plus: 1 %}
+             {% if counter == break_at %}
+               {% break %}
+             {% endif %}
+           {% endunless %}
+        {% endunless %}
+      {% endunless %}
+    {% endfor %}
+  {% endcapture %}
+
+  {% assign related_items = related_items | trim %}
+
+  {% unless related_items == blank %}
+       <br><br><br>  <br><br> <br>  
+<div class="container-fluid">-
+  <div class="row">            
+    <div style="margin-top:280px;">
+<section class="matching-products">
+    <div class="title">
+      <!-- Aqui estoy 19 -->
+        <h1 class="float:left;">{{ collection.products_count}} Productos Relacionados</h1>
+          <input type="hidden" name="id" value="{{ product.variants.id | last }}">
+          <div>
+          <!--<button type="" name="" class=" btn-update">Actualizar carrito</button>-->
+          </div>
+    </div>
+    <div class="custom-table">
+        <div class="headers hidden-xs">
+            <div class="header-item">Número de parte</div>
+            <div class="header-item">Descripción</div>
+            <div class="header-item">Proveedor</div>
+            <div class="header-item">Precio (USD $)</div>
+            <div class="header-item">Ordenar</div>
+            <div class="header-item">Disponibilidad</div>
+        </div>
+        {{ related_items }}
+    </div>
+</section>
+     </div>
+  </div>
+</div>
+
+  {% endunless %}
+
+{% endif %}
+
+</div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Related products",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_related_products",
+      "label": "Show related products",
+      "default": false
+    },
+    {
+      "id": "related_title",
+      "type": "text",
+      "label": "Section title",
+      "default": "Other fine products"
+    },
+    {
+      "type": "select",
+      "id": "related_grid_num",
+      "label": "Products per row (Desktop)",
+      "default": "6",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        },
+        {
+          "value": "6",
+          "label": "6"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{{ 'api.jquery.js' | shopify_asset_url | script_tag }}
+
+<script type="text/javascript">
+
+var ShoppingCarBar = {
+
+    elem: null,
+    cart: null,
+    shoppingCarBarItems: null,
+    shoppingCarBarPrice: null,
+
+    updateCart: function () {
+        jQuery.getJSON('/cart.js', function(cart) {
+            ShoppingCarBar.shoppingCarBarItems.text("("+cart.item_count+") " + ( cart.item_count<2 ? "ITEM" : "ITEMS"));
+            ShoppingCarBar.shoppingCarBarPrice.text("$"+cart.total_price/100);
+        });
+    },
+
+    init: function () {
+        this.elem = $('.shopping-car-bar');
+        if (this.elem .length){
+            this.shoppingCarBarItems = this.elem.find('.shopping-car-bar-items');
+            this.shoppingCarBarPrice = this.elem.find('.shopping-car-bar-price');
+        }
+    }
+};
+
+var QuickOrder = {
+
+    quickOrderItems: null,
+    quickOrderButtom: null,
+    elem: null,
+
+    init: function () {
+        var _this = this;
+        elem = $('.matching-products');
+        if (elem){
+            quickOrderItems = elem.find('.layout-row');
+            //layoutRow = elem.find('layout-row');
+            quickOrderButtom = elem.find('.btn-update');
+
+            //getCode();
+
+            quickOrderItems.each(function () {
+                var itemCode = $(this).find('.quantity').attr('id');
+                var quantity = $(this).find('.quantity').val();
+
+                /*quantity.on('change', function () {
+                    var handle = $(this);
+                    console.log("handle" + handle);
+                    if (handle.length){
+                        QuickOrder.getProduct(handle, function(product){
+                            variant = product.variants[0];
+                            console.log(variant);
+                            console.log(variant.id);
+                            handle.siblings().text("");
+                            handle.siblings().val(variant.id);
+                        });
+                    }
+                }); */
+            });
+
+            quickOrderButtom.on('click', function (){
+                QuickOrder.submit();
+            });
+
+            QuickOrder.getSKU();
+        }
+
+    },
+
+    submit: function (){
+        // Show Popup
+        var sp = false;
+        var msgAdded = "";
+        var msgError = "";
+
+        quickOrderItems.each(function(){
+            var _this = $(this);
+            var itemCode = $(this).find('.quantity').attr('id');
+            var quantity = $(this).find('.quantity').val();
+
+            if (itemCode && quantity > 0){
+                sp = true;
+                QuickOrder.addItem(itemCode,quantity, function(line_item){
+                    console.log(line_item.product_title);
+                    // PopupSection.ShowPopupMsg();
+                    msgAdded = msgAdded.concat("<div>Added: "+line_item.product_title+"</div>");
+                },
+                function(XMLHttpRequest, textStatus){
+                    console.log(XMLHttpRequest.responseJSON.message + ": "+XMLHttpRequest.responseJSON.description );
+                    // PopupSection.ShowPopupMsg(XMLHttpRequest.responseJSON.message + ": "+XMLHttpRequest.responseJSON.description );
+                    msgError = msgError.concat("<div>"+XMLHttpRequest.responseJSON.message + ": "+XMLHttpRequest.responseJSON.description+"</div>");
+                });
+            }
+        }).promise().done( function(){
+            if (sp){
+                PopupSection.ShowPopup();
+                if (msgError != '') ShowPopupMsg.ShowPopupMsg(msgError);
+            } else {
+                //PopupSection.ShowPopupError();
+            }
+        });
+    },
+
+    addItem: function(variant_id, quantity, callback, callbackError) {
+      var quantity = quantity || 1;
+
+      var params = {
+
+        type: 'POST',
+        url: '/cart/add.js',
+        data: 'quantity=' + quantity + '&id=' + variant_id,
+        dataType: 'json',
+        success: function(line_item) {
+          if ((typeof callback) === 'function') {
+            callback(line_item);
+            console.log(quantity);
+            console.log(variant_id);
+          }
+          else {
+            Shopify.onItemAdded(line_item);
+          }
+          QuickOrder.updateView();
+        },
+        error: function(XMLHttpRequest, textStatus) {
+
+          if ((typeof callbackError) === 'function') {
+            callbackError(XMLHttpRequest, textStatus);
+          }
+          else {
+            Shopify.onError(XMLHttpRequest, textStatus);
+          }
+        }
+      };
+      jQuery.ajax(params);
+    },
+
+    getSKU: function () {
+        var field = $('.code');
+        //var string = '/aaaaa/';
+        for (var i = 0; i < field.length ; i++) {
+           $(field[i]).text(function(index, text) {
+                return text.replace('/products/','');
+           });
+        }
+    },
+
+    updateView: function(){
+        ShoppingCarBar.updateCart();
+    },
+
+    getProduct: function(handle, callback) {
+      jQuery.getJSON('/products/' + handle.val() + '.js', function (product, textStatus) {
+        if ((typeof callback) === 'function') {
+          callback(product);
+        }
+        else {
+          Shopify.onProduct(product);
+        }
+      })
+      .fail(function() {
+        handle.siblings().text("Product "+handle.val()+" not found");
+        handle.siblings().val("");
+        handle.val("");
+      });
+    }
+};
+
+var PopupSection = {
+    popup: null,
+    modalIcon: null,
+    modal: null,
+
+    init: function () {
+        this.modalIcon =
+            $('<div class="modal-view">'+
+                '<div class="picture"></div>'+
+                '<div class="message">El producto fue agregado a su carrito</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="white" href="/" >Continuar comprando</a>'+
+                        '<a class="blue" href="/cart" >Ir al check out</a>'+
+                    '</div>'+
+            '</div>');
+    },
+
+    ShowPopup: function() {
+        this.popup = new Popup();
+        this.popup.display(this.modalIcon);
+    },
+
+    ShowPopupMsg: function(msg) {
+        this.popup = new Popup();
+        this.modal=
+            $('<div class="modal-view">'+
+                '<div class="message">'+msg+'</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="white"></a>'+
+                        '<a class="blue" href="#" onclick="PopupSection.popup.hide()">Close</a>'+
+                    '</div>'+
+            '</div>');
+        this.popup.display(this.modal);
+    }
+}
+
+jQuery(document).ready(function () {
+    PopupSection.init();
+    ShoppingCarBar.init();
+    QuickOrder.init();
+});
+
+
+</script>

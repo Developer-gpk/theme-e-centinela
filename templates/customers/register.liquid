@@ -1,0 +1,66 @@
+          <script src="https://www.google.com/recaptcha/api.js?render=6LcaV8AUAAAAAFTlBHX_4oYD5f6SXLja18XssOiv"></script>
+
+<div class="page-width">
+  <div class="grid">
+    <div class="grid__item medium-up--one-half medium-up--push-one-quarter">
+
+      <div class="form-vertical" id="register">
+        {% form 'create_customer' %}
+   
+          
+          <input type="hidden"  name="checkout_url" id="redirect_url" value="" />
+                <script>
+                $(document).ready(function() {
+                     var url =  document.referrer;
+                    $("#redirect_url").val(url);
+                  });
+                </script>
+
+          <h2 class="text-center">Registro</h2>
+
+          {{ form.errors | default_errors }}
+
+
+          <input placeholder="Nombre" class="input" required type="text" name="customer[first_name]" id="FirstName" {% if form.first_name %}value="{{ form.first_name }}"{% endif %} autofocus>
+
+
+          <input placeholder="Apellidos" class="input" required type="text" name="customer[last_name]" id="LastName" {% if form.last_name %}value="{{ form.last_name }}"{% endif %}>
+			
+
+        
+        
+          <input placeholder="Email" class="input" required type="email" name="customer[email]" id="Email" class="{% if form.errors contains 'email' %} input--error{% endif %}" {% if form.email %} value="{{ form.email }}"{% endif %} autocorrect="off" autocapitalize="off">
+		<!--<input placeholder="Empresa" class="input" required type="text" name="address[company]" id="company" {% if form.company %}value="{{ form.company }}"{% endif %}>-->
+		<!--<input placeholder="Phone" class="input" required type="text" name="customer[phone]" id="phone" {% if form.phone %}value="{{ form.phone }}"{% endif %}>-->
+        <input placeholder="Teléfono" class="input" required type="text" name="customer[note][Phone]" id="phone" >
+        <input placeholder="Empresa" class="input" required type="text" name="customer[note][Company]" id="company" >
+        <input placeholder="Dirección" class="input" required type="text" name="customer[note][Address]" id="address" >
+        
+
+          <input placeholder="Contraseña" class="input" required type="password" name="customer[password]" id="CreatePassword" class="{% if form.errors contains 'password' %} input--error{% endif %}">
+        <!-- aqui va el check  -->
+        <div id="accepts_marketing " class="clearfix large_form"> 
+<label for="marketing" style="font-weight:normal">I want to receive the newsletter.</label> 
+<input type="checkbox" name="customer[accepts_marketing]" checked="checked" value="true" id="marketing" />
+</div> 
+        
+        <div class="btn_group">
+              <div class="btn_register">
+                  <a href="/account/login" class="btn"> < Regresar </a>
+              </div>
+              <div class="btn_register reg">
+                  <input type="submit" value="Registrarme" class="btn">
+              </div>
+          </div>
+<script>
+grecaptcha.ready(function() {
+    grecaptcha.execute('6LcaV8AUAAAAAFTlBHX_4oYD5f6SXLja18XssOiv', {action: 'login '});
+});
+</script>
+         
+
+        {% endform %}
+      </div>
+    </div>
+  </div>
+</div>

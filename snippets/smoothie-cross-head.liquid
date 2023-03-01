@@ -1,0 +1,68 @@
+{% assign currProduct = product %}
+
+{% assign csDefault = '' %}
+{% assign csDefaultTitle = "Productos Sugeridos" %}
+
+{% assign usDefault = '' %}
+{% assign usDefaultTitle = "Te puede interesar " %}
+
+{% assign csCart = '' %}
+{% assign csCartTitle = "RECOMMENDED PRODUCTS" %}
+
+{% assign csBlog = '' %}
+{% assign csBlogTitle = "RECOMMENDED PRODUCTS" %}
+
+{% assign csArticle = '' %}
+{% assign csArticleTitle = "RECOMMENDED PRODUCTS" %}
+
+{% assign csSearch = '' %}
+{% assign csSearchTitle = "RECOMMENDED PRODUCTS" %}
+
+{% assign csError = '' %}
+{% assign csErrorTitle = "RECOMMENDED PRODUCTS" %}
+
+{% assign usContinueText = "CONTINUA" %}
+{% assign usAddText = "Añadir al carrito" %}
+{% assign usAddedText = "Añadido" %}
+{% assign usSeeMoreText = "VE MAS..." %}
+
+
+
+{% if template.name == 'product' %}
+	{% assign csTitle = "Productos Sugeridos" %}
+	{% assign csa = product.description | split: '<span id="smoothie-cs-data" style="display: none !important;">' %}
+	{% assign csb = csa[1] | split: '</span>' %}
+	{% assign csHandles = csb[0] | split: ',' %}
+	{% assign csSize = csHandles | size %}
+	{% if csSize == 0 %}
+		{% assign csTitle = csDefaultTitle %}
+		{% assign csHandles = csDefault | split: ',' %}
+	{% endif %}
+	
+
+	{% assign usTitle = "Te puede interesar " %}
+	{% assign usa = product.description | split: '<span id="smoothie-us-data" style="display: none !important;">' %}
+	{% assign usb = usa[1] | split: '</span>' %}
+	{% assign usHandles = usb[0] | split: ',' %}
+	{% assign usSize = usHandles | size %}
+	{% if usSize == 0 %}
+		{% assign usTitle = usDefaultTitle %}
+		{% assign usHandles = usDefault | split: ',' %}
+	{% endif %}
+{% elsif template.name == 'cart' %}
+    {% assign csTitle = csCartTitle %}
+	{% assign csHandles = csCart | split: ',' %}
+{% elsif template.name == 'blog' %}
+    {% assign csTitle = csBlogTitle %}
+	{% assign csHandles = csBlog | split: ',' %}
+{% elsif template.name == 'article' %}
+    {% assign csTitle = csArticleTitle %}
+	{% assign csHandles = csArticle | split: ',' %}
+{% elsif template.name == 'search' %}
+    {% assign csTitle = csSearchTitle %}
+	{% assign csHandles = csSearch | split: ',' %}
+{% elsif template.name == '404' %}
+    {% assign csTitle = csErrorTitle %}
+	{% assign csHandles = csError | split: ',' %}
+{% endif %}
+

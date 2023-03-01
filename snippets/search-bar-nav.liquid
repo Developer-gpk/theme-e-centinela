@@ -1,0 +1,16 @@
+<div class="search-bar-nav visible-xs">
+  <div class="holder">
+    <div class="container-fluid">
+      <div class="row">
+        <form class="search-bar search-bar-mobile" method="get" action="/search">
+          <div class="search-field">
+            <input type="text" name="q" id="search" placeholder="Número de Parte / Palabra Clave" value="{{ search.terms | escape }}" />
+          </div>
+          <button class="search-icon">
+            <img class="img-responsive" src="{{ 'icon-search-icon.svg'  | asset_url }}" alt="search"/>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

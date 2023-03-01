@@ -1,0 +1,69 @@
+{% include 'saw_product_variables' %}
+{% comment %}
+It may be a good idea to provide a theme setting that lets a merchant decide how many products to show per row
+on collection pages. Or, it may be a good idea to provide a control on the store front which lets a shopper decide
+whether items be presented in a grid or in a list.
+That information about the presentation can be passed on to the product-grid-item.liquid snippet via the 'with'
+argument.
+Use of the 'with' argument is explained here: http://docs.shopify.com/themes/theme-templates/snippets.
+The information can then be referred to by accessing the variable which goes by the same name as the snippet,
+in this case product-grid-item. If the 'with' argument is not used, the snippet variable is set to an empty string.
+Here, for the sake of teaching, we will use 2 presentation options:
+- 3 products per row, when passing the value 'three-per-row' to the snippet
+- 4 products per row, when passing the value 'four-per-row' to the snippet
+{% endcomment %}
+
+{% comment %}If no value is passed to the snippet, we will set the snippet variable to a sensible
+default.{% endcomment %}
+
+{% if product-grid-item == '' %}{% assign product-grid-item = 'three-per-row' %}{% endif %}
+
+{% comment %}Is this product on sale?{% endcomment %}
+{% assign on_sale = false %}
+{% if WCProductComparePrice > WCProductPrice %}
+  {% assign on_sale = true %}
+{% endif %}
+
+<!-- grid de bt -->
+<div class="col-xs-12 col-sm-4 layout-row {{ product-grid-item }}{% unless product.available %} sold-out{% endunless %}{% if on_sale %} on-sale{% endif %}{% if product-grid-item == 'four-per-row' %}{% cycle 'last': '', '', '', ' last-in-row' %}{% elsif product-grid-item == 'three-per-row' %}{% cycle 'last': '', '', ' last-in-row' %}{% endif %}">
+  <div class="related-product">
+    <a class="category-thumb-item" href="{{ product.url | within: collection }}">
+      <img src="{{ product | img_url: '180x180', crop: 'center' }}" alt="{{ product.featured_image.alt | escape }}" />
+    </a>
+    <a href="{{ product.url | within: collection }}">
+      <div class="product-title">{{product.description}}</div>
+    </a>
+
+    <div class="snize-sku">SKU: {{ product.selected_or_first_available_variant.sku }}</div>
+    <div class="price">{{ WCProductPrice | money }}</div>
+    <div class="stock">
+      {% assign product_qty = 0 %}
+      {% for variant in product.variants %}
+        {% if variant.inventory_quantity > 0 %}
+          {% assign product_qty = product_qty | plus: variant.inventory_quantity %}
+        {% endif %}
+      {% endfor %}
+      {% if product_qty == 0 %}
+        <div style="color: red;" class="availability">Stock: {{ product_qty }}</div>
+      {% else %}
+        <div style="color: green;" class="availability">Stock: {{ product_qty }}</div>
+      {% endif %}
+    </div>
+
+    <form action="/cart/add" method="posts">
+      {% assign current_variant = product.selected_or_first_available_variant %}
+{% include 'saw_variant_variables' %}
+
+      <input name="id" type="hidden" value="{{ current_variant.id }}">
+      <div class="quantity">
+        <input name="quantity" max="100" min="1" step="1" type="number" value="1">
+      </div>
+
+      {% if product_qty <= 0 %}
+        <button class="button add-cart disabled" name="add" type="submit">Agregar al carrito</button>
+      {% else %}
+        <button class="button add-cart" name="add" type="submit">Agregar al carrito</button>
+      {% endif %}
+    </form>
+  </div>
+</div>

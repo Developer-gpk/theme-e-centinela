@@ -1,0 +1,361 @@
+{% comment %} Products relacionados desde click a categoría {% endcomment %}
+<section class="matching-products">
+    {% include 'breadcrumbs' %}
+  <!-- hola mundo -->
+    <div class="title">
+        <h1>{{ collection.products_count}} Productos Relacionados</h1>
+        <button type="" name="" class="btn-update">Actualizar carrito</button>
+    </div>
+    <div class="custom-table">
+        <div class="headers hidden-xs">
+            <div class="header-item">Número de parte</div>
+            <div class="header-item">Descripción</div>
+            <div class="header-item">Proveedor</div>
+            <div class="header-item">Ficha Técnica</div>
+            <div class="header-item">Precio (USD $)</div>
+            <div class="header-item">Ordenar</div>
+            <div class="header-item">Disponibilidad</div>
+        </div>
+      <!-- hola mundo 90 -->
+        {% for product in collection.products %}
+      
+               {% assign current_variant = product.selected_or_first_available_variant %}
+{% include 'saw_variant_variables' %}
+                   {% for product in collections.frontpage.products %}
+    {% if forloop.last == true %}
+        This is the last iteration!
+    {% else %}
+        Keep going...
+    {% endif %}
+{% endfor %}
+
+
+            <div class="layout-row">
+                <div class="layout-cell">
+                    <a class="part-number" href="{{product.url}}">
+                        <img src="{{ product.featured_image | product_img_url:'67x67', crop: 'center' }}"/>
+                        <div class="code">{{current_variant.sku }}</div>
+   
+                    </a>
+                </div>
+                <div class="layout-cell hidden-xs">
+                    <div class="description">{{product.description}}</div>
+                </div>
+                <div class="layout-cell hidden-xs">
+                    <div class="supplier">
+                        {{ product.vendor }}
+                    </div>
+                </div>
+                <div class="layout-cell">
+                    <a class="pdf" href="{{ current_variant.sku | append: '.pdf' | file_url }}" id="download-btn-mobile" target="_blank">
+                        <span class="icon"><img src="{{ 'icon-pdf.svg' | asset_url }}" alt="PDF"></span>
+                    </a>
+                </div>
+                <div class="layout-cell">
+
+                  <div class="price">
+                    <div class="line">
+                      <div class="left hidden">1</div>
+                      {% include 'saw_compute_discount' with product %}
+                      <!-- 
+                        {{discount_key}} 
+                        Discount: {{ product.metafields.sawholesale[discount_key] }} 
+                        Current Price: {{wbuyx_price_min}}
+                        saw_product_price: {{saw_product_price}} 
+                        saw_product_compare_at_price {{saw_product_compare_at_price}} 
+                        -->
+                      {% if saw_has_discount == false or saw_product_price >= saw_product_compare_at_price %}
+                      <div class="right">{{product.price | money }}</div>
+                      {% else %}
+                      {{ saw_product_price | money }}
+                      <del>{{ saw_product_compare_at_price | money }}</del>
+                      {% endif %}
+                    </div>
+                  </div>
+                    <div class="price hidden">
+                        <div class="line">
+                            <div class="left">1-2</div>
+                            <div class="right">$120.00</div>
+                        </div>
+                        <div class="line">
+                            <div class="left">3-4</div>
+                            <div class="right">$117.50</div>
+                        </div>
+                        <div class="line">
+                            <div class="left">5 +</div>
+                            <div class="right">$112.00</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layout-cell">
+                    <div class="quantities">
+                        <!-- <input type="number" name="myInput" value="0" min="0" max="100" step="1"> -->
+                        <input type="number" min="0" name="quantity" value = "0" id="{{product.variants.first.id}}" class="quantity" />
+                    </div>
+                    {% comment %}
+                    <div class="content-buttom">
+                        <form class="hidden-xs" action="/cart/add" method="post" id="product-form-{{ product.id }}">
+                          <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+                          <div>
+                            <button type="" class="hidden" name="add">Agregar al carrito</button>
+                          </div>
+                        </form>
+                    </div>
+                    {% endcomment %}
+                </div>
+                <div class="layout-cell hidden-xs">
+                    {% assign product_qty = 0 %}
+                    {% for variant in product.variants %}
+                      {% if variant.inventory_quantity > 0 %}
+                        {% assign product_qty = product_qty | plus: variant.inventory_quantity %}
+                      {% endif %}
+                    {% endfor %}
+                  
+                  	{% if product_qty > 0 %}
+                  		<div class="availability mbk_has_inventory">{{ product_qty }} en existencia </div>
+                  
+                 	{% else if  product_qty == 0 %}
+                        
+                  		<div class="availability mbk_no_inventory">{{ product_qty }} en existencia </div>
+
+                  	{% endif %}
+                  
+                  
+                  
+                   <!--Mobkii removed code <div class="availability">{{ product_qty }} en existencia </div>-->
+                </div>
+                <div class="layout-cell visible-xs">
+                    <div class="description">{{product.description}}</div>
+                    <div class="content-buttom">
+                        <form class="" action="/cart/add" method="post" id="product-form-{{ product.id }}">
+                          <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+                          <div>
+                            <button class="hidden" type="submit" name="add">Agregar al carrito</button>
+                          </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+{{ 'api.jquery.js' | shopify_asset_url | script_tag }}
+
+<script type="text/javascript">
+
+var ShoppingCarBar = {
+
+    elem: null,
+    cart: null,
+    shoppingCarBarItems: null,
+    shoppingCarBarPrice: null,
+
+    updateCart: function () {
+        jQuery.getJSON('/cart.js', function(cart) {
+            ShoppingCarBar.shoppingCarBarItems.text("("+cart.item_count+") " + ( cart.item_count<2 ? "ITEM" : "ITEMS"));
+            ShoppingCarBar.shoppingCarBarPrice.text("$"+cart.total_price/100);
+        });
+    },
+
+    init: function () {
+        this.elem = $('.shopping-car-bar');
+        if (this.elem .length){
+            this.shoppingCarBarItems = this.elem.find('.shopping-car-bar-items');
+            this.shoppingCarBarPrice = this.elem.find('.shopping-car-bar-price');
+        }
+    }
+};
+
+var QuickOrder = {
+
+    quickOrderItems: null,
+    quickOrderButtom: null,
+    elem: null,
+
+    init: function () {
+        var _this = this;
+        elem = $('.matching-products');
+        if (elem){
+            quickOrderItems = elem.find('.layout-row');
+            //layoutRow = elem.find('layout-row');
+            quickOrderButtom = elem.find('.btn-update');
+
+            quickOrderItems.each(function () {
+                var itemCode = $(this).find('.quantity').attr('id');
+                var quantity = $(this).find('.quantity').val();
+              
+              //resultado 1.-.3.-4
+              //  var itemCode = $(this).find('.quantity');
+              //  var quantity = $(this).find('.part-number .code');
+
+               /* quantity.on('change', function () {
+                    var handle = $(this);
+                    console.log("handle" + handle);
+                    if (handle.length){
+                        QuickOrder.getProduct(handle, function(product){
+                            variant = product.variants[0];
+                            console.log(variant);
+                            console.log(variant.id);
+                            handle.siblings().text("");
+                            handle.siblings().val(variant.id);
+                        });
+                    }
+                }); */
+            });
+
+            quickOrderButtom.on('click', function (){
+                QuickOrder.submit();
+            });
+        }
+    },
+
+    submit: function (){
+        // Show Popup
+        var sp = false;
+        var msgAdded = "";
+        var msgError = "";
+
+        quickOrderItems.each(function(){
+            var _this = $(this);
+            var itemCode = $(this).find('.quantity').attr('id');
+            var quantity = $(this).find('.quantity').val();
+            console.log(quantity);
+            if (itemCode && quantity > 0){
+                sp = true;
+                QuickOrder.addItem(itemCode,quantity, function(line_item){
+                    console.log(line_item.product_title);
+                    // PopupSection.ShowPopupMsg();
+                    msgAdded = msgAdded.concat("<div>Added: "+line_item.product_title+"</div>");
+                },
+                function(XMLHttpRequest, textStatus){
+                    console.log(XMLHttpRequest.responseJSON.message + ": "+XMLHttpRequest.responseJSON.description );
+                    //PopupSection.ShowPopupMsg(XMLHttpRequest.responseJSON.message + ": "+XMLHttpRequest.responseJSON.description );
+                    msgError = msgError.concat("<div>"+XMLHttpRequest.responseJSON.message + ": "+XMLHttpRequest.responseJSON.description+"</div>");
+                });
+            }
+        }).promise().done( function(){
+            if (sp){
+                PopupSection.ShowPopup(true);
+                if (msgError != '') ShowPopupMsg.ShowPopupMsg(msgError);
+            }
+            else {
+                PopupSection.ShowPopup(false);
+            }
+        });
+    },
+
+    addItem: function(variant_id, quantity, callback, callbackError) {
+      var quantity = quantity || 1;
+      var params = {
+        type: 'POST',
+        url: '/cart/add.js',
+        data: 'quantity=' + quantity + '&id=' + variant_id,
+        dataType: 'json',
+        success: function(line_item) {
+          if ((typeof callback) === 'function') {
+            callback(line_item);
+          }
+          else {
+            Shopify.onItemAdded(line_item);
+          }
+          QuickOrder.updateView();
+        },
+        error: function(XMLHttpRequest, textStatus) {
+
+          if ((typeof callbackError) === 'function') {
+            callbackError(XMLHttpRequest, textStatus);
+          }
+          else {
+            Shopify.onError(XMLHttpRequest, textStatus);
+          }
+        }
+      };
+      jQuery.ajax(params);
+    },
+
+    updateView: function(){
+        ShoppingCarBar.updateCart();
+    },
+
+    getProduct: function(handle, callback) {
+      jQuery.getJSON('/products/' + handle.val() + '.js', function (product, textStatus) {
+        if ((typeof callback) === 'function') {
+          callback(product);
+        }
+        else {
+          Shopify.onProduct(product);
+        }
+      })
+      .fail(function() {
+        handle.siblings().text("Product "+handle.val()+" not found");
+        handle.siblings().val("");
+        handle.val("");
+      });
+    }
+};
+
+var PopupSection = {
+    popup: null,
+    modalIcon: null,
+    modal: null,
+
+    init: function () {
+        this.modalIcon =
+            $('<div class="modal-view">'+
+                '<div class="picture"></div>'+
+                '<div class="message">El producto fue agregado a su carrito</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="white" href="/" >Continuar comprando</a>'+
+                        '<a class="blue" href="/cart" >Ir al check out</a>'+
+                    '</div>'+
+            '</div>');
+    },
+
+    ShowPopup: function(msg) {
+        console.log(msg);
+        this.popup = new Popup();
+        this.popup.display(this.modalIcon);
+    },
+
+    ShowPopupMsg: function(msg) {
+        this.popup = new Popup();
+        this.modal=
+            $('<div class="modal-view">'+
+                '<div class="message">'+msg+'</div>'+
+                    '<div class="content-buttons">'+
+                        '<a class="white"></a>'+
+                        '<a class="blue" href="#" onclick="PopupSection.popup.hide()">Close</a>'+
+                    '</div>'+
+            '</div>');
+        this.popup.display(this.modal);
+    }
+}
+
+jQuery(document).ready(function () {
+    PopupSection.init();
+    ShoppingCarBar.init();
+    QuickOrder.init();
+});
+
+
+</script>
+
+<script>
+  var allLinks = document.querySelectorAll('.matching-products .pdf');
+  
+  if (allLinks) {
+    
+    allLinks.forEach(link => {
+      var href = link.getAttribute('href'),
+          pos = href.indexOf('pdf?v='),
+          cad = href.slice(pos);
+      
+      if (cad === 'pdf?v=0') {
+      	link.style.opacity = 0;
+      	link.style.pointerEvents = 'none';
+      	link.style.display = 'block';
+      }
+    });
+  }
+</script>
